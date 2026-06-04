@@ -144,6 +144,17 @@
       font-size: 14px;
     }
 
+    .filter-row select {
+      width: 100%;
+      padding: 11px 12px;
+      height: 44px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      background: white;
+    }
+
     .source-btn {
       background: #3b82f6;
       color: white;
@@ -255,6 +266,30 @@
     let rowsPerPage = 100;
     const sortState = { column: null, asc: true };
 
+    // Columns that should use dropdown filters (case-insensitive)
+    const DROPDOWN_FILTER_COLUMNS = new Set([
+      'book type',
+      'figurative language type',
+      'source domain',
+      'target domain'
+    ]);
+
+    function normalizeColName(name) {
+      return String(name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    }
+
+    function isDropdownColumn(colName) {
+      return DROPDOWN_FILTER_COLUMNS.has(normalizeColName(colName));
+    }
+
+    function getUniqueColumnValues(colName) {
+      return [...new Set(
+        fullData
+          .map(row => String(row[colName] ?? '').trim())
+          .filter(v => v !== '')
+      )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }
+
     async function loadFromZip() {
       try {
         const response = await fetch('Figurative%20Language%20Database.zip');
@@ -315,12 +350,34 @@
 
       columns.forEach(col => {
         const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'Search word/expression...';
-        input.dataset.col = col;
-        input.oninput = filterTable;
-        td.appendChild(input);
+
+        if (isDropdownColumn(col)) {
+          const select = document.createElement('select');
+          select.dataset.col = col;
+          select.onchange = filterTable;
+
+          const allOption = document.createElement('option');
+          allOption.value = '';
+          allOption.textContent = 'All';
+          select.appendChild(allOption);
+
+          getUniqueColumnValues(col).forEach(v => {
+            const option = document.createElement('option');
+            option.value = v;
+            option.textContent = v;
+            select.appendChild(option);
+          });
+
+          td.appendChild(select);
+        } else {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Search word/expression...';
+          input.dataset.col = col;
+          input.oninput = filterTable;
+          td.appendChild(input);
+        }
+
         filterRow.appendChild(td);
       });
 
@@ -331,9 +388,14 @@
       const globalTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
 
       const colFilters = {};
-      document.querySelectorAll('#filterRow input[data-col]').forEach(input => {
-        const val = input.value.toLowerCase().trim();
-        if (val) colFilters[input.dataset.col] = val;
+      document.querySelectorAll('#filterRow [data-col]').forEach(el => {
+        const val = String(el.value ?? '').trim();
+        if (!val) return;
+
+        colFilters[el.dataset.col] = {
+          type: el.tagName === 'SELECT' ? 'exact' : 'contains',
+          value: val.toLowerCase()
+        };
       });
 
       filteredData = fullData.filter(row => {
@@ -343,10 +405,16 @@
           if (!rowText.includes(globalTerm)) return false;
         }
 
-        // Per-column text filters
+        // Per-column filters
         for (const col in colFilters) {
           const cell = String(row[col] ?? '').toLowerCase();
-          if (!cell.includes(colFilters[col])) return false;
+          const filter = colFilters[col];
+
+          if (filter.type === 'exact') {
+            if (cell !== filter.value) return false;
+          } else {
+            if (!cell.includes(filter.value)) return false;
+          }
         }
 
         return true;
@@ -451,6 +519,7 @@
     function clearAllFilters() {
       document.getElementById('globalSearch').value = '';
       document.querySelectorAll('#filterRow input[data-col]').forEach(i => i.value = '');
+      document.querySelectorAll('#filterRow select[data-col]').forEach(s => s.value = '');
       filteredData = [...fullData];
       currentPage = 1;
       renderTable();
