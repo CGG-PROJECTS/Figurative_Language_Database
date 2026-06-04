@@ -16,7 +16,7 @@
     }
     .container { max-width: 1900px; margin: 0 auto; }
     h1 { color: #1d4ed8; text-align: center; margin-bottom: 8px; }
-    .tagline { text-align: center; color: #4b5563; margin-bottom: 20px; font-size: 1.1rem; }
+    .tagline { text-align: center; color: #4b5563; margin-bottom: 20px; }
 
     .controls {
       display: flex;
@@ -24,24 +24,10 @@
       gap: 12px;
       justify-content: center;
       margin: 20px 0;
+      align-items: center;
     }
-    #globalSearch {
-      width: 380px;
-      max-width: 100%;
-      padding: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    .btn {
-      background: #1d4ed8;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
+    #globalSearch { width: 380px; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; }
+    .btn { background: #1d4ed8; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; }
     .btn:hover { background: #1e40af; }
 
     table {
@@ -52,37 +38,43 @@
       border-radius: 12px;
       overflow: hidden;
     }
-    th, td {
-      padding: 12px 10px;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    th {
-      background: #1e40af;
-      color: white;
-      cursor: pointer;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #1e40af; color: white; cursor: pointer; position: sticky; top: 0; z-index: 10; }
     tr:hover { background: #f0f9ff; }
-    .filter-row input, .filter-row select { width: 100%; box-sizing: border-box; }
     .long-text { max-width: 450px; white-space: pre-wrap; line-height: 1.45; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .pagination button { padding: 8px 16px; }
+    #loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      color: #1d4ed8;
+    }
     .count { font-weight: bold; color: #1d4ed8; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Picturebook Figurative Language Database</h1>
-    <p class="tagline">Teacher-friendly interactive database • Search, sort & filter</p>
+    <p class="tagline">Fast teacher-friendly view with pagination</p>
 
     <div class="controls">
-      <input type="text" id="globalSearch" placeholder="Search any keyword (book, quote, domain...)">
-      <button class="btn" onclick="exportCSV()">↓ Export Filtered as CSV</button>
-      <a href="Figurative%20Language%20Database.zip" class="btn" download>↓ Download Full Database (.zip)</a>
+      <input type="text" id="globalSearch" placeholder="Search anywhere...">
+      <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
+      <a href="Figurative%20Language%20Database.zip" class="btn" download>↓ Full Database (.zip)</a>
     </div>
 
-    <table id="dataTable">
+    <div id="loading">Loading database... (this may take 10-20 seconds)</div>
+
+    <table id="dataTable" style="display:none;">
       <thead>
         <tr id="headerRow"></tr>
         <tr class="filter-row" id="filterRow"></tr>
@@ -90,25 +82,37 @@
       <tbody id="tableBody"></tbody>
     </table>
 
-    <p style="text-align:center; margin-top:15px;">
+    <div class="pagination" id="pagination" style="display:none;">
+      <button onclick="prevPage()">← Previous</button>
+      <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+      <button onclick="nextPage()">Next →</button>
+      <select id="rowsPerPage" onchange="changeRowsPerPage()">
+        <option value="50">50 rows</option>
+        <option value="100" selected>100 rows</option>
+        <option value="250">250 rows</option>
+      </select>
+    </div>
+
+    <p style="text-align:center;">
       Showing <span id="rowCount" class="count">0</span> examples
     </p>
   </div>
 
   <script>
     let fullData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    let rowsPerPage = 100;
 
     async function loadFromZip() {
+      const loadingEl = document.getElementById('loading');
       try {
-        // Use encoded filename (spaces → %20)
         const response = await fetch('Figurative%20Language%20Database.zip');
         const zipBlob = await response.blob();
         const zip = await JSZip.loadAsync(zipBlob);
 
-        // Find the first .csv file inside the zip
-        const csvFile = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.csv'));
-
-        if (!csvFile) throw new Error("No CSV file found inside the zip");
+        const csvFile = Object.values(zip.files).find(f => f.name.toLowerCase().endsWith('.csv'));
+        if (!csvFile) throw new Error("No CSV inside zip");
 
         const csvText = await csvFile.async("string");
 
@@ -116,28 +120,59 @@
           header: true,
           skipEmptyLines: true,
           complete: (results) => {
-            fullData = results.data.filter(row => Object.values(row).some(v => v && v.trim() !== ''));
-            renderTable(fullData);
+            fullData = results.data.filter(row => Object.values(row).some(v => v && v.trim()));
+            filteredData = [...fullData];
+            loadingEl.style.display = 'none';
+            document.getElementById('dataTable').style.display = 'table';
+            document.getElementById('pagination').style.display = 'flex';
+            renderTable();
           }
         });
       } catch (err) {
+        loadingEl.textContent = "Error loading file. Make sure the .zip is in the same folder.";
         console.error(err);
-        alert("Could not load the zip file.\n\nMake sure the zip is named exactly 'Figurative Language Database.zip' and is in the same folder as index.html");
       }
     }
 
-    function renderTable(data) {
+    function renderTable() {
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const pageData = filteredData.slice(start, end);
+
+      // Render headers and filters only once
+      if (currentPage === 1 && document.getElementById('headerRow').children.length === 0) {
+        renderHeadersAndFilters();
+      }
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      pageData.forEach(row => {
+        const tr = document.createElement('tr');
+        Object.keys(row).forEach(col => {
+          const td = document.createElement('td');
+          let val = row[col] || '';
+          if (['Quotation from Source', 'Source Chain of Thought', 'Target Chain of Thought', 'AI Short Comment'].includes(col)) {
+            td.className = 'long-text';
+          }
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('rowCount').textContent = filteredData.length;
+      document.getElementById('currentPage').textContent = currentPage;
+      document.getElementById('totalPages').textContent = Math.ceil(filteredData.length / rowsPerPage) || 1;
+    }
+
+    function renderHeadersAndFilters() {
+      const columns = Object.keys(fullData[0] || {});
       const headerRow = document.getElementById('headerRow');
       const filterRow = document.getElementById('filterRow');
-      const tbody = document.getElementById('tableBody');
 
       headerRow.innerHTML = '';
       filterRow.innerHTML = '';
-      tbody.innerHTML = '';
-
-      if (data.length === 0) return;
-
-      const columns = Object.keys(data[0]);
 
       columns.forEach(col => {
         const th = document.createElement('th');
@@ -149,7 +184,7 @@
       columns.forEach((col, i) => {
         const td = document.createElement('td');
         const dropdownCols = ['Book Type', 'Figurative Language Type', 'Source Domain', 'Target Domain'];
-        
+
         if (dropdownCols.includes(col)) {
           const select = document.createElement('select');
           select.innerHTML = '<option value="">All</option>';
@@ -157,7 +192,7 @@
           uniques.forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
-            opt.textContent = val.length > 40 ? val.substring(0,37) + '...' : val;
+            opt.textContent = val.length > 40 ? val.substring(0,37)+'...' : val;
             select.appendChild(opt);
           });
           select.onchange = filterTable;
@@ -171,29 +206,13 @@
         }
         filterRow.appendChild(td);
       });
-
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        columns.forEach(col => {
-          const td = document.createElement('td');
-          let val = row[col] || '';
-          if (['Quotation from Source', 'Source Chain of Thought', 'Target Chain of Thought', 'AI Short Comment'].includes(col)) {
-            td.className = 'long-text';
-          }
-          td.textContent = val;
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('rowCount').textContent = data.length;
     }
 
     function filterTable() {
       const searchTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
       const filterEls = Array.from(document.querySelectorAll('.filter-row td input, .filter-row td select'));
 
-      const filtered = fullData.filter(row => {
+      filteredData = fullData.filter(row => {
         if (searchTerm && !Object.values(row).join(' ').toLowerCase().includes(searchTerm)) return false;
 
         return filterEls.every((el, i) => {
@@ -204,21 +223,44 @@
         });
       });
 
-      renderTable(filtered);
+      currentPage = 1;
+      renderTable();
     }
 
     function sortTable(column) {
       fullData.sort((a, b) => String(a[column] || '').localeCompare(String(b[column] || '')));
-      renderTable(fullData);
+      filteredData.sort((a, b) => String(a[column] || '').localeCompare(String(b[column] || '')));
+      currentPage = 1;
+      renderTable();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    }
+
+    function nextPage() {
+      if (currentPage < Math.ceil(filteredData.length / rowsPerPage)) {
+        currentPage++;
+        renderTable();
+      }
+    }
+
+    function changeRowsPerPage() {
+      rowsPerPage = parseInt(document.getElementById('rowsPerPage').value);
+      currentPage = 1;
+      renderTable();
     }
 
     function exportCSV() {
-      const headers = Object.keys(fullData[0]);
+      if (filteredData.length === 0) return;
+      const headers = Object.keys(filteredData[0]);
       let csv = headers.join(',') + '\n';
-      
-      document.querySelectorAll('#tableBody tr').forEach(tr => {
-        const rowData = Array.from(tr.children).map(td => `"${td.textContent.replace(/"/g, '""')}"`);
-        csv += rowData.join(',') + '\n';
+      filteredData.forEach(row => {
+        const values = headers.map(h => `"${String(row[h] || '').replace(/"/g, '""')}"`);
+        csv += values.join(',') + '\n';
       });
 
       const blob = new Blob([csv], { type: 'text/csv' });
@@ -228,6 +270,10 @@
       link.click();
     }
 
+    // Event listeners
+    document.getElementById('globalSearch').addEventListener('input', filterTable);
+
+    // Start
     window.onload = loadFromZip;
   </script>
 </body>
