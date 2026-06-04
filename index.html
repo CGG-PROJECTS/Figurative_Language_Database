@@ -257,7 +257,7 @@
     let rowsPerPage = 100;
     const sortState = { column: null, asc: true };
 
-    // columns that should use dropdown filters
+    // These columns will use dropdown filters (case-insensitive match by header text)
     const DROPDOWN_FILTER_COLUMNS = new Set([
       'book type',
       'figurative language type',
@@ -265,25 +265,32 @@
       'target domain'
     ]);
 
-    function normalizeColName(name) {
-      return String(name || '').toLowerCase().trim();
-    }
-
     function isDropdownColumn(colName) {
-      return DROPDOWN_FILTER_COLUMNS.has(normalizeColName(colName));
+      return DROPDOWN_FILTER_COLUMNS.has(String(colName).toLowerCase().trim());
     }
 
-    function wordCount(text) {
-      const words = String(text || '').trim().match(/\S+/g);
-      return words ? words.length : 0;
+    function normalizeSpaces(s) {
+      return String(s ?? '').replace(/\s+/g, ' ').trim();
+    }
+
+    function wordCount(s) {
+      const cleaned = normalizeSpaces(s);
+      return cleaned ? cleaned.split(' ').length : 0;
+    }
+
+    function isBadDropdownValue(v) {
+      const cleaned = normalizeSpaces(v);
+      if (!cleaned) return true;              // empty
+      if (/^\d+$/.test(cleaned)) return true; // numeric-only like "6"
+      if (wordCount(cleaned) > 5) return true;// more than 5 words
+      return false;
     }
 
     function getUniqueColumnValues(colName) {
       return [...new Set(
         fullData
-          .map(row => String(row[colName] ?? '').trim())
-          .filter(v => v !== '')
-          .filter(v => wordCount(v) <= 5) // only show values with <= 5 words
+          .map(row => normalizeSpaces(row[colName]))
+          .filter(v => !isBadDropdownValue(v))
       )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
     }
 
@@ -387,26 +394,24 @@
       const colFilters = {};
       document.querySelectorAll('#filterRow [data-col]').forEach(el => {
         const col = el.dataset.col;
-        const val = String(el.value ?? '').trim();
-        if (!val) return;
+        const rawVal = normalizeSpaces(el.value);
+        if (!rawVal) return;
 
         if (el.tagName === 'SELECT') {
-          colFilters[col] = { type: 'exact', value: val.toLowerCase() };
+          colFilters[col] = { type: 'exact', value: rawVal.toLowerCase() };
         } else {
-          colFilters[col] = { type: 'contains', value: val.toLowerCase() };
+          colFilters[col] = { type: 'contains', value: rawVal.toLowerCase() };
         }
       });
 
       filteredData = fullData.filter(row => {
-        // Global search across all columns
         if (globalTerm) {
           const rowText = Object.values(row).map(v => String(v ?? '')).join(' ').toLowerCase();
           if (!rowText.includes(globalTerm)) return false;
         }
 
-        // Per-column filters
         for (const col in colFilters) {
-          const cell = String(row[col] ?? '').toLowerCase();
+          const cell = normalizeSpaces(row[col]).toLowerCase();
           const f = colFilters[col];
 
           if (f.type === 'exact') {
