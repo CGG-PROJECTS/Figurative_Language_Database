@@ -18,9 +18,35 @@
     }
 
     .container { max-width: 1900px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 30px; }
+    header { text-align: center; margin-bottom: 20px; }
     h1 { margin: 0 0 12px 0; font-size: 2.4rem; color: #1d4ed8; font-weight: 700; }
     .tagline { font-size: 1.1rem; color: #4b5563; max-width: 900px; margin: 0 auto; }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 14px 0 24px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #1f2937;
+      padding: 10px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab-btn.active {
+      background: #1d4ed8;
+      color: #fff;
+      border-color: #1d4ed8;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
 
     .about-box {
       background: white;
@@ -173,8 +199,57 @@
       background: white;
       cursor: pointer;
     }
-
     .pagination button:hover { background: #f3f4f6; }
+
+    /* AI tab */
+    .ai-wrap {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      padding: 20px;
+    }
+
+    .ai-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .ai-field label {
+      display: block;
+      font-size: 0.9rem;
+      color: #374151;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .ai-field input, .ai-field select, .ai-field textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    .ai-field textarea { min-height: 130px; resize: vertical; }
+
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .status {
+      margin-top: 8px;
+      font-size: 0.92rem;
+      color: #334155;
+    }
   </style>
 </head>
 <body>
@@ -184,70 +259,183 @@
       <div class="tagline">Research-based open resource for teachers</div>
     </header>
 
-    <div class="about-box">
-      <h2>About This Resource</h2>
-      <p>
-        This database contains over <strong>68,000 figurative language examples</strong> (metaphors,
-        similes, personification, hyperbole) from thousands of picturebooks.
-      </p>
-      <ul>
-        <li><strong>Source Chain of Thought</strong> → AI reasoning about the source domain</li>
-        <li><strong>Target Chain of Thought</strong> → AI reasoning about the target domain</li>
-        <li><strong>AI Short Comment</strong> → Quick quality note + simple explanation</li>
-        <li><strong>Find Source</strong> → Google search shortcut for book/read-aloud</li>
-      </ul>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-database">Database</button>
+      <button class="tab-btn" data-tab="tab-ai">AI Teacher Tools</button>
     </div>
 
-    <section class="gallery">
-      <div><img src="https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg" alt="Stack of children's picturebooks"></div>
-      <div>
-        <img src="https://thumbs.dreamstime.com/b/majestic-lion-rocky-peak-vibrant-sunset-clouds-majestic-lion-rocky-peak-vibrant-sunset-clouds-420984846.jpg" alt="Majestic lion">
-        <div class="gallery-caption"><strong>Simile</strong>as brave as a lion</div>
+    <!-- DATABASE TAB -->
+    <section id="tab-database" class="tab-pane active">
+      <div class="about-box">
+        <h2>About This Resource</h2>
+        <p>
+          Here you can search and collect real examples of figurative language expressions for
+          discussion, worksheets, and classroom activities. You can quickly find books and multimedia
+          sources by clicking the link next to any metaphor, simile, personification, or hyperbole entry.
+        </p>
+        <p>
+          You can also select examples from the database and use AI to create activities, suggest related
+          metaphors, explain expressions, and explore possible origin/history notes.
+        </p>
+        <p>
+          Try searching <strong>dream</strong>, for example. You may retrieve many expressions that show how
+          a single concept can be figuratively elaborated in strikingly different directions: dreams appear
+          as vast or measurable entities, as objects that can be built upon, trapped, or destroyed, and as
+          goals that demand active pursuit.
+        </p>
+        <p>
+          You can also use the dropdown filters to explore metaphors by concept/domain, such as emotions,
+          love, life and loss, health and illness, games and sport, human relationships, and communication.
+        </p>
       </div>
-      <div>
-        <img src="https://thumbs.dreamstime.com/b/ghostly-galleon-sails-under-brooding-moonlit-sky-turbulent-sea-majestic-tall-ship-dark-glow-full-moon-357371346.jpg" alt="Ghostly galleon">
-        <div class="gallery-caption"><strong>Metaphor</strong>The moon was a ghostly galleon</div>
+
+      <section class="gallery">
+        <div><img src="https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg" alt="Stack of children's picturebooks"></div>
+        <div>
+          <img src="https://thumbs.dreamstime.com/b/majestic-lion-rocky-peak-vibrant-sunset-clouds-majestic-lion-rocky-peak-vibrant-sunset-clouds-420984846.jpg" alt="Majestic lion">
+          <div class="gallery-caption"><strong>Simile</strong>as brave as a lion</div>
+        </div>
+        <div>
+          <img src="https://thumbs.dreamstime.com/b/ghostly-galleon-sails-under-brooding-moonlit-sky-turbulent-sea-majestic-tall-ship-dark-glow-full-moon-357371346.jpg" alt="Ghostly galleon">
+          <div class="gallery-caption"><strong>Metaphor</strong>The moon was a ghostly galleon</div>
+        </div>
+        <div>
+          <img src="https://thumbs.dreamstime.com/b/whispering-landscape-frozen-forest-winter-silence-ethereal-nature-concept-292248604.jpg" alt="Whispering wind through trees">
+          <div class="gallery-caption"><strong>Personification</strong>The wind whispered through the trees</div>
+        </div>
+        <div>
+          <img src="https://www.literacyideas.com/wp-content/uploads/2021/08/Hyperbole-eat-a-horse-1.jpg" alt="Hyperbole expression">
+          <div class="gallery-caption"><strong>Hyperbole</strong>I'm so hungry I could eat a horse</div>
+        </div>
+        <div><img src="https://thumbs.dreamstime.com/b/multicultural-kids-children-playing-reading-books-isolated-white-89339344.jpg" alt="Children reading"></div>
+      </section>
+
+      <div class="controls">
+        <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
+        <button class="btn" onclick="filterTable()">🔍 Search</button>
+        <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
+        <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
       </div>
-      <div>
-        <img src="https://thumbs.dreamstime.com/b/whispering-landscape-frozen-forest-winter-silence-ethereal-nature-concept-292248604.jpg" alt="Whispering wind through trees">
-        <div class="gallery-caption"><strong>Personification</strong>The wind whispered through the trees</div>
+
+      <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
+
+      <div id="loading">Loading large database... (10–20 seconds first time)</div>
+
+      <table id="dataTable" style="display:none;">
+        <thead>
+          <tr id="headerRow"></tr>
+          <tr class="filter-row" id="filterRow"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <div class="pagination" id="pagination" style="display:none;">
+        <button onclick="prevPage()">← Previous</button>
+        <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+        <button onclick="nextPage()">Next →</button>
+        <select id="rowsPerPage" onchange="changeRowsPerPage()">
+          <option value="50">50 rows</option>
+          <option value="100" selected>100 rows</option>
+          <option value="250">250 rows</option>
+        </select>
       </div>
-      <div>
-        <img src="https://www.literacyideas.com/wp-content/uploads/2021/08/Hyperbole-eat-a-horse-1.jpg" alt="Hyperbole expression">
-        <div class="gallery-caption"><strong>Hyperbole</strong>I'm so hungry I could eat a horse</div>
-      </div>
-      <div><img src="https://thumbs.dreamstime.com/b/multicultural-kids-children-playing-reading-books-isolated-white-89339344.jpg" alt="Children reading"></div>
     </section>
 
-    <div class="controls">
-      <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
-      <button class="btn" onclick="filterTable()">🔍 Search</button>
-      <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
-      <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
-    </div>
+    <!-- AI TAB -->
+    <section id="tab-ai" class="tab-pane">
+      <div class="ai-wrap">
+        <h2 style="margin-top:0;">Teacher Prompt Builder</h2>
+        <p style="color:#475569;margin-top:0;">
+          Build classroom-ready prompts from filtered database rows. This does not change your data page.
+        </p>
 
-    <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
+        <div class="ai-grid">
+          <div class="ai-field">
+            <label>Pull from filtered table column</label>
+            <select id="pbColumn"></select>
+          </div>
+          <div class="ai-field" style="display:flex;align-items:flex-end;">
+            <button class="btn" onclick="pullFromFiltered()">⬇ Add Unique Values from Filtered Rows</button>
+          </div>
+        </div>
 
-    <div id="loading">Loading large database... (10–20 seconds first time)</div>
+        <div class="ai-grid">
+          <div class="ai-field">
+            <label>Grade band</label>
+            <select id="pbGrade">
+              <option>K–1</option>
+              <option>2–3</option>
+              <option selected>4–6</option>
+              <option>7–8</option>
+              <option>9–12</option>
+            </select>
+          </div>
 
-    <table id="dataTable" style="display:none;">
-      <thead>
-        <tr id="headerRow"></tr>
-        <tr class="filter-row" id="filterRow"></tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+          <div class="ai-field">
+            <label>Output length</label>
+            <select id="pbLength">
+              <option value="short">Short</option>
+              <option value="medium" selected>Medium</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
 
-    <div class="pagination" id="pagination" style="display:none;">
-      <button onclick="prevPage()">← Previous</button>
-      <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-      <button onclick="nextPage()">Next →</button>
-      <select id="rowsPerPage" onchange="changeRowsPerPage()">
-        <option value="50">50 rows</option>
-        <option value="100" selected>100 rows</option>
-        <option value="250">250 rows</option>
-      </select>
-    </div>
+          <div class="ai-field">
+            <label>Text style</label>
+            <select id="pbTextType">
+              <option value="mixed" selected>Mixed</option>
+              <option value="fiction">Story / read-aloud style</option>
+              <option value="informational">Informational passage</option>
+              <option value="worksheet">Worksheet-only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="ai-field">
+          <label>Teacher focus (optional)</label>
+          <input id="pbFocus" placeholder="e.g., explain figurative meaning + compare literal meaning" />
+        </div>
+
+        <div style="margin:12px 0 6px;font-weight:600;color:#334155;">Include these teacher tasks</div>
+        <div class="checks">
+          <label><input type="checkbox" class="pbAct" value="Generate more examples" checked> Generate more examples</label>
+          <label><input type="checkbox" class="pbAct" value="Story with target examples" checked> Story with target examples</label>
+          <label><input type="checkbox" class="pbAct" value="Explain each expression clearly" checked> Explain each expression clearly</label>
+          <label><input type="checkbox" class="pbAct" value="Create worksheet + answer key" checked> Create worksheet + answer key</label>
+          <label><input type="checkbox" class="pbAct" value="Suggest related metaphors/similes"> Suggest related metaphors/similes</label>
+          <label><input type="checkbox" class="pbAct" value="Literal vs figurative sorting activity"> Literal vs figurative sorting activity</label>
+          <label><input type="checkbox" class="pbAct" value="Brief origin/history note when known"> Brief origin/history note when known</label>
+        </div>
+
+        <div class="ai-field" style="margin-top:14px;">
+          <label>Target words / figurative examples (one per line or comma-separated)</label>
+          <textarea id="pbInput" placeholder="Paste selected examples here..."></textarea>
+        </div>
+
+        <div class="controls" style="justify-content:flex-start;">
+          <button class="btn" onclick="generatePrompt()">✨ Generate Prompt</button>
+          <button class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+          <button class="btn" onclick="clearPromptBuilder()">Clear Prompt Form</button>
+        </div>
+
+        <div class="ai-field">
+          <label>Generated prompt</label>
+          <textarea id="pbOutput" style="min-height:220px;"></textarea>
+        </div>
+
+        <div class="controls" style="justify-content:flex-start;">
+          <label for="pbProvider" style="font-weight:600;color:#334155;">Open in</label>
+          <select id="pbProvider">
+            <option value="chatgpt">ChatGPT</option>
+            <option value="gemini">Gemini</option>
+            <option value="claude">Claude</option>
+          </select>
+          <button class="btn" onclick="openPromptInLLM()">🚀 Open with Prompt</button>
+        </div>
+
+        <div class="status" id="pbStatus"></div>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -321,6 +509,7 @@
 
             renderHeadersAndFilters();
             renderTable();
+            populatePromptColumns();
           },
           error: (err) => {
             document.getElementById('loading').textContent = 'CSV parse error: ' + err.message;
@@ -553,7 +742,188 @@
       if (e.key === 'Enter') filterTable();
     });
 
-    window.onload = loadFromZip;
+    // Tabs
+    function initTabs() {
+      const buttons = document.querySelectorAll('.tab-btn');
+      const panes = document.querySelectorAll('.tab-pane');
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          panes.forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+    }
+
+    // ===== Prompt Builder =====
+    function pbStatus(msg, color = '#334155') {
+      const el = document.getElementById('pbStatus');
+      el.textContent = msg;
+      el.style.color = color;
+    }
+
+    function populatePromptColumns() {
+      const select = document.getElementById('pbColumn');
+      if (!select) return;
+      select.innerHTML = '';
+
+      const cols = Object.keys(fullData[0] || {});
+      if (!cols.length) return;
+
+      const preferred = [
+        'Quotation from Source',
+        'Figurative Expression',
+        'Source Domain',
+        'Target Domain',
+        'Source Attribution'
+      ];
+
+      const ordered = [
+        ...preferred.filter(c => cols.includes(c)),
+        ...cols.filter(c => !preferred.includes(c))
+      ];
+
+      ordered.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function pullFromFiltered() {
+      const col = document.getElementById('pbColumn').value;
+      const box = document.getElementById('pbInput');
+
+      if (!filteredData.length) {
+        pbStatus('❌ No filtered rows available.', 'red');
+        return;
+      }
+      if (!col || !(col in filteredData[0])) {
+        pbStatus('❌ Column not found in dataset.', 'red');
+        return;
+      }
+
+      const items = [...new Set(
+        filteredData.map(r => normalizeSpaces(r[col])).filter(Boolean)
+      )];
+
+      const existing = box.value.trim();
+      box.value = existing ? (existing + '\n' + items.join('\n')) : items.join('\n');
+      pbStatus(`✅ Added ${items.length} unique values from "${col}".`, '#15803d');
+    }
+
+    function buildPromptText(words, cfg) {
+      const lenMap = {
+        short: "150–250 words per text",
+        medium: "250–450 words per text",
+        long: "450–700 words per text"
+      };
+
+      let prompt = `You are an expert literacy teacher and curriculum writer specializing in figurative language instruction.\n\n`;
+      prompt += `TARGET EXPRESSIONS (use all naturally):\n${words.join("\n")}\n\n`;
+      prompt += `SETTINGS:\n`;
+      prompt += `- Grade band: ${cfg.grade}\n`;
+      prompt += `- Output length: ${lenMap[cfg.length] || lenMap.medium}\n`;
+      prompt += `- Text style: ${cfg.textType}\n`;
+      prompt += `- Teacher focus: ${cfg.focus || "Figurative meaning, literal comparison, and classroom use"}\n\n`;
+
+      prompt += `REQUIRED OUTPUT:\n`;
+      prompt += `1) Provide student-friendly explanation(s) for each expression.\n`;
+      prompt += `2) Include literal vs figurative meaning notes.\n`;
+      prompt += `3) Keep language classroom-ready and age-appropriate.\n`;
+
+      if (cfg.activities.length) {
+        prompt += `4) Include these teacher-requested tasks:\n`;
+        cfg.activities.forEach((a, i) => {
+          prompt += `   ${i + 1}. ${a}\n`;
+        });
+      }
+
+      prompt += `\nFormatting requirements:\n`;
+      prompt += `- Use clear section headings\n`;
+      prompt += `- Include printable-friendly activity structure\n`;
+      prompt += `- Add an answer key when worksheet tasks are included\n`;
+
+      return prompt;
+    }
+
+    function generatePrompt() {
+      const raw = document.getElementById('pbInput').value.trim();
+      if (!raw) {
+        pbStatus('❌ Please add target expressions first.', 'red');
+        return;
+      }
+
+      const words = raw.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean);
+      const activities = Array.from(document.querySelectorAll('.pbAct:checked')).map(el => el.value);
+
+      const cfg = {
+        grade: document.getElementById('pbGrade').value,
+        length: document.getElementById('pbLength').value,
+        textType: document.getElementById('pbTextType').value,
+        focus: document.getElementById('pbFocus').value.trim(),
+        activities
+      };
+
+      document.getElementById('pbOutput').value = buildPromptText(words, cfg);
+      pbStatus(`✅ Prompt ready (${words.length} items, ${activities.length} tasks).`, '#15803d');
+    }
+
+    function copyPrompt() {
+      const out = document.getElementById('pbOutput').value.trim();
+      if (!out) {
+        pbStatus('❌ Generate a prompt first.', 'red');
+        return;
+      }
+
+      navigator.clipboard.writeText(out).then(() => {
+        pbStatus('✅ Prompt copied.', '#15803d');
+      }).catch(() => {
+        pbStatus('❌ Copy failed. Please copy manually.', 'red');
+      });
+    }
+
+    function openPromptInLLM() {
+      const prompt = document.getElementById('pbOutput').value.trim();
+      const provider = document.getElementById('pbProvider').value;
+
+      if (!prompt) {
+        pbStatus('❌ Generate a prompt first.', 'red');
+        return;
+      }
+
+      const encoded = encodeURIComponent(prompt);
+      let url = "https://chatgpt.com/?q=" + encoded;
+      if (provider === 'gemini') url = "https://gemini.google.com/app?prompt=" + encoded;
+      if (provider === 'claude') url = "https://claude.ai/new";
+
+      const w = window.open(url, '_blank');
+      if (!w) {
+        pbStatus('❌ Popup blocked. Allow popups and try again.', 'red');
+        return;
+      }
+
+      navigator.clipboard.writeText(prompt).then(() => {
+        pbStatus('✅ Opened new tab. Prompt copied to clipboard.', '#15803d');
+      }).catch(() => {
+        pbStatus('✅ Opened new tab. Paste prompt manually if needed.', '#15803d');
+      });
+    }
+
+    function clearPromptBuilder() {
+      document.getElementById('pbInput').value = '';
+      document.getElementById('pbFocus').value = '';
+      document.getElementById('pbOutput').value = '';
+      pbStatus('');
+    }
+
+    window.addEventListener('load', () => {
+      initTabs();
+      loadFromZip();
+    });
   </script>
 </body>
 </html>
