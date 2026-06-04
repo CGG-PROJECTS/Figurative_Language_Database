@@ -529,12 +529,11 @@
         <textarea id="explainPreview"></textarea>
       </div>
 
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeExplainModal()">Cancel</button>
-        <button class="btn" onclick="openExplainInAI()">Open AI Tool</button>
-      </div>
-    </div>
-  </div>
+<div class="modal-actions">
+  <button class="btn-secondary" onclick="closeExplainModal()">Cancel</button>
+  <button class="btn-secondary" onclick="copyExplainPrompt()">📋 Copy Prompt</button>
+  <button class="btn" onclick="openExplainInAI()">Open AI Tool</button>
+</div>
 
   <script>
     let fullData = [];
@@ -1028,23 +1027,23 @@
       return '';
     }
 
-    function buildExplainPrompt(row, task = "both") {
-      const quote = getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]);
-      const figType = getFirstNonEmpty(row, ["Figurative Language Type", "Type"]);
-      const sourceDomain = getFirstNonEmpty(row, ["Source Domain"]);
-      const targetDomain = getFirstNonEmpty(row, ["Target Domain"]);
-      const sourceAttr = getFirstNonEmpty(row, ["Source Attribution", "Book", "Title"]);
+function buildExplainPrompt(row, task = "both") {
+  const quote = getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]);
+  const figType = getFirstNonEmpty(row, ["Figurative Language Type", "Type"]);
+  const sourceDomain = getFirstNonEmpty(row, ["Source Domain"]);
+  const targetDomain = getFirstNonEmpty(row, ["Target Domain"]);
+  const sourceAttr = getFirstNonEmpty(row, ["Source Attribution", "Book", "Title"]);
 
-      let instruction = "";
-      if (task === "explain") {
-        instruction = "Explain this figurative language example clearly for teachers and students.";
-      } else if (task === "history") {
-        instruction = "If known, explain the origin/history of this expression. If uncertain, say so clearly and avoid guessing.";
-      } else {
-        instruction = "1) Explain this figurative language example clearly. 2) Provide origin/history if known; if uncertain, say so clearly.";
-      }
+  let instruction = "";
+  if (task === "explain") {
+    instruction = "Explain this figurative language example clearly for teachers and students.";
+  } else if (task === "history") {
+    instruction = "If known, explain the origin/history of this expression. If uncertain, say so clearly and avoid guessing.";
+  } else {
+    instruction = "1) Explain this figurative language example clearly. 2) Provide origin/history if known; if uncertain, say so clearly.";
+  }
 
-      return `You are a literacy expert supporting teachers.
+  return `You are a literacy expert supporting teachers.
 
 ${instruction}
 
@@ -1061,7 +1060,23 @@ Return:
 - Why this example is effective
 - (If requested) history/origin with confidence note
 - 2 quick classroom discussion questions`;
-    }
+}
+
+// 👇 ADD THIS AS A NEW FUNCTION (separate)
+function copyExplainPrompt() {
+  const prompt = document.getElementById("explainPreview").value.trim();
+  if (!prompt) {
+    alert("No prompt to copy yet.");
+    return;
+  }
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    alert("Prompt copied to clipboard.");
+  }).catch(() => {
+    alert("Copy failed. Please copy manually.");
+  });
+}
+
 
     function showExplainModal(row) {
       currentExplainRow = row;
