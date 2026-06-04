@@ -959,7 +959,7 @@ function addQuoteTypeFromFilteredRows() {
 
         const googleBtn = document.createElement('button');
         googleBtn.className = 'source-btn';
-        googleBtn.textContent = '🔍 Google';
+        googleBtn.textContent = '🔍 Google: find the source';
         googleBtn.onclick = () => {
           const q = source || quote;
           if (!q) return;
@@ -969,7 +969,7 @@ function addQuoteTypeFromFilteredRows() {
 
         const explainBtn = document.createElement('button');
         explainBtn.className = 'explain-btn';
-        explainBtn.textContent = '✨ Explain';
+        explainBtn.textContent = '✨ Explain the figurative language example';
         explainBtn.onclick = () => showExplainModal(row);
         actionTd.appendChild(explainBtn);
 
