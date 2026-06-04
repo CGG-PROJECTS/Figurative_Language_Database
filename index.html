@@ -111,6 +111,16 @@
     }
     .btn:hover { background: #1e40af; }
 
+    .btn-secondary{
+      background:#e5e7eb;
+      color:#111827;
+      border:none;
+      border-radius:8px;
+      padding:10px 14px;
+      cursor:pointer;
+    }
+    .btn-secondary:hover{ background:#d1d5db; }
+
     .meta {
       text-align: center;
       color: #374151;
@@ -180,20 +190,20 @@
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
-      margin-right: 6px;
     }
     .source-btn:hover { background: #2563eb; }
 
-    .explain-btn {
+    .explain-btn{
       background:#8b5cf6;
       color:#fff;
       border:none;
       padding:7px 12px;
       border-radius:6px;
       cursor:pointer;
+      margin-left:6px;
       white-space: nowrap;
     }
-    .explain-btn:hover { background:#7c3aed; }
+    .explain-btn:hover{ background:#7c3aed; }
 
     .pagination {
       display: flex;
@@ -219,6 +229,37 @@
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.06);
       padding: 20px;
+    }
+
+    .ai-hero {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      min-height: 180px;
+      background-image: url('https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg');
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,.15);
+    }
+
+    .ai-hero::after{
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(to right, rgba(30,64,175,.75), rgba(139,92,246,.60));
+    }
+
+    .ai-hero-content{
+      position:relative;
+      z-index:2;
+      color:#fff;
+      padding:20px;
+      max-width: 760px;
+    }
+
+    .ai-hero h3{
+      margin:0 0 6px 0;
+      font-size:1.35rem;
     }
 
     .ai-grid {
@@ -264,55 +305,33 @@
     }
 
     /* Explain modal */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
+    .modal-backdrop{
+      position: fixed; inset: 0;
       background: rgba(0,0,0,.45);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 9999;
     }
-
-    .modal {
+    .modal{
       width: min(680px, 92vw);
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 20px 45px rgba(0,0,0,.25);
       padding: 18px;
     }
-
-    .modal h3 { margin: 0 0 10px; color:#1e40af; }
-    .modal .row { margin: 10px 0; }
-    .modal label { font-weight: 600; display:block; margin-bottom: 6px; }
-
-    .modal select, .modal textarea {
+    .modal h3{ margin: 0 0 10px; color:#1e40af; }
+    .modal .row{ margin: 10px 0; }
+    .modal label{ font-weight: 600; display:block; margin-bottom: 6px; }
+    .modal select, .modal textarea{
       width: 100%;
       border:1px solid #cbd5e1;
       border-radius:8px;
       padding:10px;
       box-sizing:border-box;
     }
-
-    .modal textarea { min-height: 120px; resize: vertical; }
-
-    .modal-actions {
-      display:flex;
-      gap:10px;
-      justify-content:flex-end;
-      margin-top:12px;
-    }
-
-    .btn-secondary {
-      background:#e5e7eb;
-      color:#111827;
-      border:none;
-      border-radius:8px;
-      padding:10px 14px;
-      cursor:pointer;
-    }
-
-    .btn-secondary:hover { background:#d1d5db; }
+    .modal textarea{ min-height: 120px; resize: vertical; }
+    .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
   </style>
 </head>
 <body>
@@ -407,6 +426,15 @@
     <!-- AI TAB -->
     <section id="tab-ai" class="tab-pane">
       <div class="ai-wrap">
+        <div class="ai-hero">
+          <div class="ai-hero-content">
+            <h3>AI Teacher Prompt Studio</h3>
+            <p style="margin:0;opacity:.95;">
+              Quickly turn filtered figurative language examples into classroom-ready prompts, explanations, and activities.
+            </p>
+          </div>
+        </div>
+
         <h2 style="margin-top:0;">Teacher Prompt Builder</h2>
         <p style="color:#475569;margin-top:0;">
           Build classroom-ready prompts from filtered database rows. This does not change your data page.
@@ -419,6 +447,9 @@
           </div>
           <div class="ai-field" style="display:flex;align-items:flex-end;">
             <button class="btn" onclick="pullFromFiltered()">⬇ Add Unique Values from Filtered Rows</button>
+          </div>
+          <div class="ai-field" style="display:flex;align-items:flex-end;">
+            <button class="btn" onclick="pullQuoteTypeFromFiltered()">⬇ Add Quotation + Type from Filtered Rows</button>
           </div>
         </div>
 
@@ -452,6 +483,11 @@
               <option value="worksheet">Worksheet-only</option>
             </select>
           </div>
+
+          <div class="ai-field">
+            <label>How many NEW examples should AI generate?</label>
+            <input id="pbExampleCount" type="number" min="1" max="100" step="1" value="10" />
+          </div>
         </div>
 
         <div class="ai-field">
@@ -471,8 +507,16 @@
         </div>
 
         <div class="ai-field" style="margin-top:14px;">
-          <label>Target words / figurative examples (one per line or comma-separated)</label>
-          <textarea id="pbInput" placeholder="Paste selected examples here..."></textarea>
+          <label>Figurative examples input (paste one per line)</label>
+          <textarea id="pbInput" placeholder='Formats accepted:
+1) quote | type
+   Example: The moon was a ghostly galleon | Metaphor
+
+2) type: quote
+   Example: Simile: as brave as a lion
+
+3) quote only
+   Example: The wind whispered through the trees'></textarea>
         </div>
 
         <div class="controls" style="justify-content:flex-start;">
@@ -529,11 +573,13 @@
         <textarea id="explainPreview"></textarea>
       </div>
 
-<div class="modal-actions">
-  <button class="btn-secondary" onclick="closeExplainModal()">Cancel</button>
-  <button class="btn-secondary" onclick="copyExplainPrompt()">📋 Copy Prompt</button>
-  <button class="btn" onclick="openExplainInAI()">Open AI Tool</button>
-</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeExplainModal()">Cancel</button>
+        <button class="btn-secondary" onclick="copyExplainPrompt()">📋 Copy Prompt</button>
+        <button class="btn" onclick="openExplainInAI()">Open AI Tool</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     let fullData = [];
@@ -543,7 +589,7 @@
     const sortState = { column: null, asc: true };
     let currentExplainRow = null;
 
-    // These columns will use dropdown filters (case-insensitive match by header text)
+    // These columns use dropdown filters
     const DROPDOWN_FILTER_COLUMNS = new Set([
       'book type',
       'figurative language type',
@@ -578,6 +624,24 @@
           .map(row => normalizeSpaces(row[colName]))
           .filter(v => !isBadDropdownValue(v))
       )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }
+
+    function getFirstNonEmpty(row, candidates) {
+      for (const c of candidates) {
+        const v = String(row[c] ?? '').trim();
+        if (v) return v;
+      }
+      return '';
+    }
+
+    function findColumnName(candidates) {
+      const cols = Object.keys(fullData[0] || {});
+      const map = new Map(cols.map(c => [c.toLowerCase().trim(), c]));
+      for (const cand of candidates) {
+        const hit = map.get(String(cand).toLowerCase().trim());
+        if (hit) return hit;
+      }
+      return null;
     }
 
     async function loadFromZip() {
@@ -728,10 +792,12 @@
           const td = document.createElement('td');
           const val = row[col] ?? '';
 
-          if (
-            ['Quotation from Source', 'Source Chain of Thought', 'Target Chain of Thought', 'AI Short Comment']
-            .includes(col)
-          ) {
+          if ([
+            'Quotation from Source',
+            'Source Chain of Thought',
+            'Target Chain of Thought',
+            'AI Short Comment'
+          ].includes(col)) {
             td.className = 'long-text';
           }
 
@@ -740,6 +806,7 @@
         });
 
         const actionTd = document.createElement('td');
+
         const source = String(row['Source Attribution'] ?? '').trim();
         const quote = String(row['Quotation from Source'] ?? '').trim();
 
@@ -840,6 +907,10 @@
       document.body.removeChild(link);
     }
 
+    document.getElementById('globalSearch').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') filterTable();
+    });
+
     // Tabs
     function initTabs() {
       const buttons = document.querySelectorAll('.tab-btn');
@@ -853,6 +924,94 @@
           document.getElementById(btn.dataset.tab).classList.add('active');
         });
       });
+    }
+
+    // ===== Explain Modal =====
+    function buildExplainPrompt(row, task = "both") {
+      const quote = getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]);
+      const figType = getFirstNonEmpty(row, ["Figurative Language Type", "Type"]);
+      const sourceDomain = getFirstNonEmpty(row, ["Source Domain"]);
+      const targetDomain = getFirstNonEmpty(row, ["Target Domain"]);
+      const sourceAttr = getFirstNonEmpty(row, ["Source Attribution", "Book", "Title"]);
+
+      let instruction = "";
+      if (task === "explain") {
+        instruction = "Explain this figurative language example clearly for teachers and students.";
+      } else if (task === "history") {
+        instruction = "If known, explain the origin/history of this expression. If uncertain, say so clearly and avoid guessing.";
+      } else {
+        instruction = "1) Explain this figurative language example clearly. 2) Provide origin/history if known; if uncertain, say so clearly.";
+      }
+
+      return `You are a literacy expert supporting teachers.
+
+${instruction}
+
+Example details:
+- Figurative language type: ${figType || "(not provided)"}
+- Quotation: ${quote || "(not provided)"}
+- Source domain: ${sourceDomain || "(not provided)"}
+- Target domain: ${targetDomain || "(not provided)"}
+- Source attribution: ${sourceAttr || "(not provided)"}
+
+Return:
+- Student-friendly explanation
+- Literal vs figurative meaning
+- Why this example is effective
+- (If requested) history/origin with confidence note
+- 2 quick classroom discussion questions`;
+    }
+
+    function showExplainModal(row) {
+      currentExplainRow = row;
+      const task = document.getElementById("explainTask").value;
+      document.getElementById("explainPreview").value = buildExplainPrompt(row, task);
+      document.getElementById("explainModalBackdrop").style.display = "flex";
+    }
+
+    function closeExplainModal() {
+      document.getElementById("explainModalBackdrop").style.display = "none";
+    }
+
+    function copyExplainPrompt() {
+      const prompt = document.getElementById("explainPreview").value.trim();
+      if (!prompt) {
+        alert("No prompt to copy yet.");
+        return;
+      }
+
+      navigator.clipboard.writeText(prompt).then(() => {
+        alert("Prompt copied to clipboard.");
+      }).catch(() => {
+        alert("Copy failed. Please copy manually.");
+      });
+    }
+
+    document.addEventListener("change", (e) => {
+      if (e.target && e.target.id === "explainTask" && currentExplainRow) {
+        document.getElementById("explainPreview").value =
+          buildExplainPrompt(currentExplainRow, e.target.value);
+      }
+    });
+
+    function openExplainInAI() {
+      const provider = document.getElementById("explainProvider").value;
+      const prompt = document.getElementById("explainPreview").value.trim();
+      if (!prompt) return;
+
+      const encoded = encodeURIComponent(prompt);
+      let url = "https://chatgpt.com/?q=" + encoded;
+      if (provider === "gemini") url = "https://gemini.google.com/app?prompt=" + encoded;
+      if (provider === "claude") url = "https://claude.ai/new";
+
+      const w = window.open(url, "_blank");
+      if (!w) {
+        alert("Popup blocked. Please allow popups and try again.");
+        return;
+      }
+
+      navigator.clipboard.writeText(prompt).catch(() => {});
+      closeExplainModal();
     }
 
     // ===== Prompt Builder =====
@@ -872,6 +1031,7 @@
 
       const preferred = [
         'Quotation from Source',
+        'Figurative Language Type',
         'Figurative Expression',
         'Source Domain',
         'Target Domain',
@@ -913,7 +1073,57 @@
       pbStatus(`✅ Added ${items.length} unique values from "${col}".`, '#15803d');
     }
 
-    function buildPromptText(words, cfg) {
+    function pullQuoteTypeFromFiltered() {
+      if (!filteredData.length) {
+        pbStatus('❌ No filtered rows available.', 'red');
+        return;
+      }
+
+      const quoteCol = findColumnName(['Quotation from Source', 'Quotation', 'Quote']);
+      const typeCol = findColumnName(['Figurative Language Type', 'Type']);
+
+      if (!quoteCol) {
+        pbStatus('❌ Could not find quotation column.', 'red');
+        return;
+      }
+
+      const lines = [];
+      filteredData.forEach(row => {
+        const quote = normalizeSpaces(row[quoteCol]);
+        if (!quote) return;
+        const type = typeCol ? normalizeSpaces(row[typeCol]) : 'Unknown';
+        lines.push(`${quote} | ${type || 'Unknown'}`);
+      });
+
+      const uniqueLines = [...new Set(lines)];
+      const box = document.getElementById('pbInput');
+      const existing = box.value.trim();
+      box.value = existing ? (existing + '\n' + uniqueLines.join('\n')) : uniqueLines.join('\n');
+
+      pbStatus(`✅ Added ${uniqueLines.length} "Quotation | Type" lines from filtered rows.`, '#15803d');
+    }
+
+    function parseFigurativeInput(raw) {
+      const lines = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+      return lines.map(line => {
+        if (line.includes('|')) {
+          const [quote, type] = line.split('|').map(s => s.trim());
+          return { quote: quote || '', type: type || 'Unknown' };
+        }
+
+        if (line.includes(':')) {
+          const [left, ...rest] = line.split(':');
+          const maybeType = left.trim();
+          const quote = rest.join(':').trim();
+          if (quote) return { quote, type: maybeType || 'Unknown' };
+        }
+
+        return { quote: line, type: 'Unknown' };
+      }).filter(x => x.quote);
+    }
+
+    function buildPromptText(items, cfg) {
       const lenMap = {
         short: "150–250 words per text",
         medium: "250–450 words per text",
@@ -921,20 +1131,27 @@
       };
 
       let prompt = `You are an expert literacy teacher and curriculum writer specializing in figurative language instruction.\n\n`;
-      prompt += `TARGET EXPRESSIONS (use all naturally):\n${words.join("\n")}\n\n`;
-      prompt += `SETTINGS:\n`;
+
+      prompt += `INPUT FIGURATIVE EXPRESSIONS:\n`;
+      items.forEach((it, i) => {
+        prompt += `${i + 1}. Quotation: "${it.quote}" | Type: ${it.type}\n`;
+      });
+
+      prompt += `\nSETTINGS:\n`;
       prompt += `- Grade band: ${cfg.grade}\n`;
       prompt += `- Output length: ${lenMap[cfg.length] || lenMap.medium}\n`;
       prompt += `- Text style: ${cfg.textType}\n`;
-      prompt += `- Teacher focus: ${cfg.focus || "Figurative meaning, literal comparison, and classroom use"}\n\n`;
+      prompt += `- Teacher focus: ${cfg.focus || "Figurative meaning, literal comparison, and classroom use"}\n`;
+      prompt += `- Number of NEW examples to generate: ${cfg.exampleCount}\n\n`;
 
       prompt += `REQUIRED OUTPUT:\n`;
-      prompt += `1) Provide student-friendly explanation(s) for each expression.\n`;
-      prompt += `2) Include literal vs figurative meaning notes.\n`;
-      prompt += `3) Keep language classroom-ready and age-appropriate.\n`;
+      prompt += `1) Explain each input expression in student-friendly language.\n`;
+      prompt += `2) For each: include literal vs figurative meaning.\n`;
+      prompt += `3) Generate exactly ${cfg.exampleCount} NEW figurative language examples aligned to the same themes/types.\n`;
+      prompt += `4) Keep all language classroom-ready and age-appropriate.\n`;
 
       if (cfg.activities.length) {
-        prompt += `4) Include these teacher-requested tasks:\n`;
+        prompt += `5) Include these teacher-requested tasks:\n`;
         cfg.activities.forEach((a, i) => {
           prompt += `   ${i + 1}. ${a}\n`;
         });
@@ -951,11 +1168,16 @@
     function generatePrompt() {
       const raw = document.getElementById('pbInput').value.trim();
       if (!raw) {
-        pbStatus('❌ Please add target expressions first.', 'red');
+        pbStatus('❌ Please add figurative expressions first.', 'red');
         return;
       }
 
-      const words = raw.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean);
+      const items = parseFigurativeInput(raw);
+      if (!items.length) {
+        pbStatus('❌ Could not parse input. Use one example per line.', 'red');
+        return;
+      }
+
       const activities = Array.from(document.querySelectorAll('.pbAct:checked')).map(el => el.value);
 
       const cfg = {
@@ -963,11 +1185,12 @@
         length: document.getElementById('pbLength').value,
         textType: document.getElementById('pbTextType').value,
         focus: document.getElementById('pbFocus').value.trim(),
+        exampleCount: parseInt(document.getElementById('pbExampleCount').value, 10) || 10,
         activities
       };
 
-      document.getElementById('pbOutput').value = buildPromptText(words, cfg);
-      pbStatus(`✅ Prompt ready (${words.length} items, ${activities.length} tasks).`, '#15803d');
+      document.getElementById('pbOutput').value = buildPromptText(items, cfg);
+      pbStatus(`✅ Prompt ready (${items.length} source items, ${cfg.exampleCount} requested new examples).`, '#15803d');
     }
 
     function copyPrompt() {
@@ -1015,127 +1238,13 @@
       document.getElementById('pbInput').value = '';
       document.getElementById('pbFocus').value = '';
       document.getElementById('pbOutput').value = '';
+      document.getElementById('pbExampleCount').value = '10';
       pbStatus('');
     }
-
-    // ===== Row Explain Modal =====
-    function getFirstNonEmpty(row, candidates) {
-      for (const c of candidates) {
-        const v = String(row[c] ?? '').trim();
-        if (v) return v;
-      }
-      return '';
-    }
-
-function buildExplainPrompt(row, task = "both") {
-  const quote = getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]);
-  const figType = getFirstNonEmpty(row, ["Figurative Language Type", "Type"]);
-  const sourceDomain = getFirstNonEmpty(row, ["Source Domain"]);
-  const targetDomain = getFirstNonEmpty(row, ["Target Domain"]);
-  const sourceAttr = getFirstNonEmpty(row, ["Source Attribution", "Book", "Title"]);
-
-  let instruction = "";
-  if (task === "explain") {
-    instruction = "Explain this figurative language example clearly for teachers and students.";
-  } else if (task === "history") {
-    instruction = "If known, explain the origin/history of this expression. If uncertain, say so clearly and avoid guessing.";
-  } else {
-    instruction = "1) Explain this figurative language example clearly. 2) Provide origin/history if known; if uncertain, say so clearly.";
-  }
-
-  return `You are a literacy expert supporting teachers.
-
-${instruction}
-
-Example details:
-- Figurative language type: ${figType || "(not provided)"}
-- Quotation: ${quote || "(not provided)"}
-- Source domain: ${sourceDomain || "(not provided)"}
-- Target domain: ${targetDomain || "(not provided)"}
-- Source attribution: ${sourceAttr || "(not provided)"}
-
-Return:
-- Student-friendly explanation
-- Literal vs figurative meaning
-- Why this example is effective
-- (If requested) history/origin with confidence note
-- 2 quick classroom discussion questions`;
-}
-
-// 👇 ADD THIS AS A NEW FUNCTION (separate)
-function copyExplainPrompt() {
-  const prompt = document.getElementById("explainPreview").value.trim();
-  if (!prompt) {
-    alert("No prompt to copy yet.");
-    return;
-  }
-
-  navigator.clipboard.writeText(prompt).then(() => {
-    alert("Prompt copied to clipboard.");
-  }).catch(() => {
-    alert("Copy failed. Please copy manually.");
-  });
-}
-
-
-    function showExplainModal(row) {
-      currentExplainRow = row;
-      const task = document.getElementById("explainTask").value;
-      document.getElementById("explainPreview").value = buildExplainPrompt(row, task);
-      document.getElementById("explainModalBackdrop").style.display = "flex";
-    }
-
-    function closeExplainModal() {
-      document.getElementById("explainModalBackdrop").style.display = "none";
-    }
-
-    function openExplainInAI() {
-      const provider = document.getElementById("explainProvider").value;
-      const prompt = document.getElementById("explainPreview").value.trim();
-      if (!prompt) return;
-
-      const encoded = encodeURIComponent(prompt);
-      let url = "https://chatgpt.com/?q=" + encoded;
-      if (provider === "gemini") url = "https://gemini.google.com/app?prompt=" + encoded;
-      if (provider === "claude") url = "https://claude.ai/new";
-
-      const w = window.open(url, "_blank");
-      if (!w) {
-        alert("Popup blocked. Please allow popups and try again.");
-        return;
-      }
-
-      navigator.clipboard.writeText(prompt).catch(() => {});
-      closeExplainModal();
-    }
-
-    // Events
-    document.addEventListener("change", (e) => {
-      if (e.target && e.target.id === "explainTask" && currentExplainRow) {
-        document.getElementById("explainPreview").value =
-          buildExplainPrompt(currentExplainRow, e.target.value);
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      const back = document.getElementById('explainModalBackdrop');
-      if (e.target === back) closeExplainModal();
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeExplainModal();
-    });
 
     window.addEventListener('load', () => {
       initTabs();
       loadFromZip();
-
-      const g = document.getElementById('globalSearch');
-      if (g) {
-        g.addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') filterTable();
-        });
-      }
     });
   </script>
 </body>
