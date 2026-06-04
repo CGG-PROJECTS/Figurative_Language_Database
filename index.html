@@ -79,7 +79,7 @@
     <div class="controls">
       <input type="text" id="globalSearch" placeholder="Search any keyword (book, quote, domain...)">
       <button class="btn" onclick="exportCSV()">↓ Export Filtered as CSV</button>
-      <a href="Figurative_Language_Database.zip" class="btn" download>↓ Download Full Database (.zip)</a>
+      <a href="Figurative%20Language%20Database.zip" class="btn" download>↓ Download Full Database (.zip)</a>
     </div>
 
     <table id="dataTable">
@@ -100,16 +100,15 @@
 
     async function loadFromZip() {
       try {
-        const response = await fetch('Figurative_Language_Database.zip');
+        // Use encoded filename (spaces → %20)
+        const response = await fetch('Figurative%20Language%20Database.zip');
         const zipBlob = await response.blob();
         const zip = await JSZip.loadAsync(zipBlob);
 
-        // Try common CSV filenames inside the zip
-        const csvFile = zip.file(/\.csv$/i)[0] || 
-                       zip.file("Figurative Language Database.csv") ||
-                       zip.file(Object.keys(zip.files)[0]);
+        // Find the first .csv file inside the zip
+        const csvFile = Object.values(zip.files).find(file => file.name.toLowerCase().endsWith('.csv'));
 
-        if (!csvFile) throw new Error("No CSV found inside zip");
+        if (!csvFile) throw new Error("No CSV file found inside the zip");
 
         const csvText = await csvFile.async("string");
 
@@ -117,13 +116,13 @@
           header: true,
           skipEmptyLines: true,
           complete: (results) => {
-            fullData = results.data.filter(row => Object.values(row).some(v => v)); // remove empty rows
+            fullData = results.data.filter(row => Object.values(row).some(v => v && v.trim() !== ''));
             renderTable(fullData);
           }
         });
       } catch (err) {
         console.error(err);
-        alert("Could not load the zip file.\nMake sure 'Figurative_Language_Database.zip' is in the same folder as index.html");
+        alert("Could not load the zip file.\n\nMake sure the zip is named exactly 'Figurative Language Database.zip' and is in the same folder as index.html");
       }
     }
 
@@ -140,7 +139,6 @@
 
       const columns = Object.keys(data[0]);
 
-      // Headers
       columns.forEach(col => {
         const th = document.createElement('th');
         th.textContent = col;
@@ -148,12 +146,11 @@
         headerRow.appendChild(th);
       });
 
-      // Filter row
       columns.forEach((col, i) => {
         const td = document.createElement('td');
-        const isDropdownCol = ['Book Type', 'Figurative Language Type', 'Source Domain', 'Target Domain'].includes(col);
-
-        if (isDropdownCol) {
+        const dropdownCols = ['Book Type', 'Figurative Language Type', 'Source Domain', 'Target Domain'];
+        
+        if (dropdownCols.includes(col)) {
           const select = document.createElement('select');
           select.innerHTML = '<option value="">All</option>';
           const uniques = [...new Set(fullData.map(r => r[col]).filter(Boolean))].sort();
@@ -175,7 +172,6 @@
         filterRow.appendChild(td);
       });
 
-      // Body
       data.forEach(row => {
         const tr = document.createElement('tr');
         columns.forEach(col => {
@@ -195,12 +191,12 @@
 
     function filterTable() {
       const searchTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
-      const filters = Array.from(document.querySelectorAll('.filter-row td input, .filter-row td select'));
+      const filterEls = Array.from(document.querySelectorAll('.filter-row td input, .filter-row td select'));
 
       const filtered = fullData.filter(row => {
         if (searchTerm && !Object.values(row).join(' ').toLowerCase().includes(searchTerm)) return false;
 
-        return filters.every((el, i) => {
+        return filterEls.every((el, i) => {
           const col = Object.keys(fullData[0])[i];
           const val = el.value.trim();
           if (!val) return true;
@@ -212,20 +208,17 @@
     }
 
     function sortTable(column) {
-      fullData.sort((a, b) => {
-        const valA = a[column] || '';
-        const valB = b[column] || '';
-        return String(valA).localeCompare(String(valB));
-      });
+      fullData.sort((a, b) => String(a[column] || '').localeCompare(String(b[column] || '')));
       renderTable(fullData);
     }
 
     function exportCSV() {
       const headers = Object.keys(fullData[0]);
       let csv = headers.join(',') + '\n';
+      
       document.querySelectorAll('#tableBody tr').forEach(tr => {
-        const row = Array.from(tr.children).map(td => `"${td.textContent.replace(/"/g, '""')}"`);
-        csv += row.join(',') + '\n';
+        const rowData = Array.from(tr.children).map(td => `"${td.textContent.replace(/"/g, '""')}"`);
+        csv += rowData.join(',') + '\n';
       });
 
       const blob = new Blob([csv], { type: 'text/csv' });
@@ -235,7 +228,6 @@
       link.click();
     }
 
-    // Start loading
     window.onload = loadFromZip;
   </script>
 </body>
