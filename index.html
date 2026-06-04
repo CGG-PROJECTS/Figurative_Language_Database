@@ -440,18 +440,27 @@
           Build classroom-ready prompts from filtered database rows. This does not change your data page.
         </p>
 
-        <div class="ai-grid">
-          <div class="ai-field">
-            <label>Pull from filtered table column</label>
-            <select id="pbColumn"></select>
-          </div>
-          <div class="ai-field" style="display:flex;align-items:flex-end;">
-            <button class="btn" onclick="pullFromFiltered()">⬇ Add Unique Values from Filtered Rows</button>
-          </div>
-          <div class="ai-field" style="display:flex;align-items:flex-end;">
-            <button class="btn" onclick="pullQuoteTypeFromFiltered()">⬇ Add Quotation + Type from Filtered Rows</button>
-          </div>
-        </div>
+<div class="ai-grid">
+  <div class="ai-field">
+    <label>How many examples from filtered database?</label>
+    <input id="pbDbTake" type="number" min="1" value="5" />
+  </div>
+
+  <div class="ai-field">
+    <label>Pick</label>
+    <select id="pbDbMode">
+      <option value="random" selected>Random</option>
+      <option value="first">First rows</option>
+    </select>
+  </div>
+
+  <div class="ai-field" style="display:flex;align-items:flex-end;">
+    <button class="btn" onclick="addQuoteTypeFromFilteredRows()">
+      ⬇ Add Quotation + Type from Filtered Rows
+    </button>
+  </div>
+</div>
+
 
         <div class="ai-grid">
           <div class="ai-field">
@@ -738,6 +747,71 @@
 
       filterRow.appendChild(document.createElement('td'));
     }
+function getCurrentFilteredDataset() {
+  // Use whichever filtered array your app already maintains
+  if (Array.isArray(window.filteredData)) return window.filteredData;
+  if (Array.isArray(window.filteredRows)) return window.filteredRows;
+  if (Array.isArray(window.currentFilteredRows)) return window.currentFilteredRows;
+  return [];
+}
+
+function sampleRows(arr, n, mode = "random") {
+  if (!Array.isArray(arr) || !arr.length || n <= 0) return [];
+  if (n >= arr.length) return [...arr];
+
+  if (mode === "first") return arr.slice(0, n);
+
+  // random sample without replacement
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+}
+
+function normalizeSpace(s) {
+  return String(s || "").replace(/\s+/g, " ").trim();
+}
+
+function addQuoteTypeFromFilteredRows() {
+  const allFiltered = getCurrentFilteredDataset();
+  if (!allFiltered.length) {
+    pbStatus("❌ No filtered rows found. Apply filters first.", "red");
+    return;
+  }
+
+  const take = Math.max(1, parseInt(document.getElementById("pbDbTake").value, 10) || 5);
+  const mode = document.getElementById("pbDbMode").value || "random";
+
+  const picked = sampleRows(allFiltered, take, mode);
+
+  const lines = [];
+  const seen = new Set();
+
+  for (const row of picked) {
+    const quote = normalizeSpace(getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]));
+    const type  = normalizeSpace(getFirstNonEmpty(row, ["Figurative Language Type", "Type"])) || "Unknown";
+    if (!quote) continue;
+
+    const line = `${quote} | ${type}`;
+    const key = line.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    lines.push(line);
+  }
+
+  if (!lines.length) {
+    pbStatus("❌ Could not extract Quotation + Type from selected rows.", "red");
+    return;
+  }
+
+  // Replace textarea content with exactly this selected batch
+  const input = document.getElementById("pbInput");
+  input.value = lines.join("\n");
+
+  pbStatus(`✅ Added ${lines.length} example(s) from filtered rows.`, "#15803d");
+}
 
     function filterTable() {
       const globalTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
