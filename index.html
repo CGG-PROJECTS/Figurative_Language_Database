@@ -29,6 +29,32 @@
       margin: 14px 0 24px;
       flex-wrap: wrap;
     }
+/* Explain modal */
+.modal-backdrop{
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: none; align-items: center; justify-content: center; z-index: 9999;
+}
+.modal{
+  width: min(680px, 92vw); background: #fff; border-radius: 12px;
+  box-shadow: 0 20px 45px rgba(0,0,0,.25); padding: 18px;
+}
+.modal h3{ margin: 0 0 10px; color:#1e40af; }
+.modal .row{ margin: 10px 0; }
+.modal label{ font-weight: 600; display:block; margin-bottom: 6px; }
+.modal select, .modal textarea{
+  width: 100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; box-sizing:border-box;
+}
+.modal textarea{ min-height: 120px; resize: vertical; }
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+.btn-secondary{
+  background:#e5e7eb; color:#111827; border:none; border-radius:8px; padding:10px 14px; cursor:pointer;
+}
+.btn-secondary:hover{ background:#d1d5db; }
+
+.explain-btn{
+  background:#8b5cf6; color:#fff; border:none; padding:7px 12px; border-radius:6px; cursor:pointer; margin-left:6px;
+}
+.explain-btn:hover{ background:#7c3aed; }
 
     .tab-btn {
       border: 1px solid #cbd5e1;
@@ -444,6 +470,88 @@
     let currentPage = 1;
     let rowsPerPage = 100;
     const sortState = { column: null, asc: true };
+let currentExplainRow = null;
+
+function getFirstNonEmpty(row, candidates) {
+  for (const c of candidates) {
+    const v = String(row[c] ?? '').trim();
+    if (v) return v;
+  }
+  return '';
+}
+
+function buildExplainPrompt(row, task = "both") {
+  const quote = getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]);
+  const figType = getFirstNonEmpty(row, ["Figurative Language Type", "Type"]);
+  const sourceDomain = getFirstNonEmpty(row, ["Source Domain"]);
+  const targetDomain = getFirstNonEmpty(row, ["Target Domain"]);
+  const sourceAttr = getFirstNonEmpty(row, ["Source Attribution", "Book", "Title"]);
+
+  let instruction = "";
+  if (task === "explain") {
+    instruction = "Explain this figurative language example clearly for teachers and students.";
+  } else if (task === "history") {
+    instruction = "If known, explain the origin/history of this expression. If uncertain, say so clearly and avoid guessing.";
+  } else {
+    instruction = "1) Explain this figurative language example clearly. 2) Provide origin/history if known; if uncertain, say so clearly.";
+  }
+
+  return `You are a literacy expert supporting teachers.
+
+${instruction}
+
+Example details:
+- Figurative language type: ${figType || "(not provided)"}
+- Quotation: ${quote || "(not provided)"}
+- Source domain: ${sourceDomain || "(not provided)"}
+- Target domain: ${targetDomain || "(not provided)"}
+- Source attribution: ${sourceAttr || "(not provided)"}
+
+Return:
+- Student-friendly explanation
+- Literal vs figurative meaning
+- Why this example is effective
+- (If requested) history/origin with confidence note
+- 2 quick classroom discussion questions`;
+}
+
+function showExplainModal(row) {
+  currentExplainRow = row;
+  const task = document.getElementById("explainTask").value;
+  document.getElementById("explainPreview").value = buildExplainPrompt(row, task);
+  document.getElementById("explainModalBackdrop").style.display = "flex";
+}
+
+function closeExplainModal() {
+  document.getElementById("explainModalBackdrop").style.display = "none";
+}
+
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "explainTask" && currentExplainRow) {
+    document.getElementById("explainPreview").value =
+      buildExplainPrompt(currentExplainRow, e.target.value);
+  }
+});
+
+function openExplainInAI() {
+  const provider = document.getElementById("explainProvider").value;
+  const prompt = document.getElementById("explainPreview").value.trim();
+  if (!prompt) return;
+
+  const encoded = encodeURIComponent(prompt);
+  let url = "https://chatgpt.com/?q=" + encoded;
+  if (provider === "gemini") url = "https://gemini.google.com/app?prompt=" + encoded;
+  if (provider === "claude") url = "https://claude.ai/new";
+
+  const w = window.open(url, "_blank");
+  if (!w) {
+    alert("Popup blocked. Please allow popups and try again.");
+    return;
+  }
+
+  navigator.clipboard.writeText(prompt).catch(() => {});
+  closeExplainModal();
+}
 
     // These columns will use dropdown filters (case-insensitive match by header text)
     const DROPDOWN_FILTER_COLUMNS = new Set([
@@ -644,16 +752,21 @@
         const actionTd = document.createElement('td');
         const source = String(row['Source Attribution'] ?? '').trim();
 
-        if (source) {
-          const btn = document.createElement('button');
-          btn.className = 'source-btn';
-          btn.textContent = '🔍 Google';
-          btn.onclick = () => window.open(
-            `https://www.google.com/search?q=${encodeURIComponent(source + ' read aloud')}`,
-            '_blank'
-          );
-          actionTd.appendChild(btn);
-        } else {
+       const googleBtn = document.createElement('button');
+googleBtn.className = 'source-btn';
+googleBtn.textContent = '🔍 Google';
+googleBtn.onclick = () => {
+  const q = source || (String(row['Quotation from Source'] ?? '').trim());
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(q + ' read aloud')}`, '_blank');
+};
+actionTd.appendChild(googleBtn);
+
+const explainBtn = document.createElement('button');
+explainBtn.className = 'explain-btn';
+explainBtn.textContent = '✨ Explain';
+explainBtn.onclick = () => showExplainModal(row);
+actionTd.appendChild(explainBtn);
+ else {
           actionTd.textContent = '';
         }
 
@@ -925,5 +1038,39 @@
       loadFromZip();
     });
   </script>
+  <div id="explainModalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <h3>Explain Figurative Language Example</h3>
+
+    <div class="row">
+      <label for="explainTask">What should AI do?</label>
+      <select id="explainTask">
+        <option value="explain">Explain this example (student-friendly)</option>
+        <option value="history">Tell me the history/origin if known</option>
+        <option value="both" selected>Explain + history/origin</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="explainProvider">Open in</label>
+      <select id="explainProvider">
+        <option value="chatgpt">ChatGPT</option>
+        <option value="gemini">Gemini</option>
+        <option value="claude">Claude</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="explainPreview">Prompt preview (editable)</label>
+      <textarea id="explainPreview"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeExplainModal()">Cancel</button>
+      <button class="btn" onclick="openExplainInAI()">Open AI Tool</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
