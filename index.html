@@ -1,863 +1,559 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Picturebook Figurative Language Database</title>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
   <style>
-    :root{
-      --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#475569;
-      --line:#e2e8f0; --blue:#2563eb; --green:#15803d; --red:#b91c1c;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
+      color: #111827;
+      margin: 0;
+      padding: 20px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;padding:24px;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    h1,h2,h3{margin:0 0 10px}
-    .wrap{max-width:1300px;margin:0 auto}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
-    .muted{color:var(--muted)}
-    .grid{display:grid;gap:10px}
-    .g4{grid-template-columns:repeat(4,minmax(150px,1fr))}
-    .g3{grid-template-columns:repeat(3,minmax(150px,1fr))}
-    .g2{grid-template-columns:repeat(2,minmax(150px,1fr))}
-    @media (max-width:980px){.g4,.g3,.g2{grid-template-columns:1fr}}
-    input,select,textarea,button{
-      width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#fff
+
+    .container { max-width: 1900px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 30px; }
+    h1 { margin: 0 0 12px 0; font-size: 2.4rem; color: #1d4ed8; font-weight: 700; }
+    .tagline { font-size: 1.1rem; color: #4b5563; max-width: 900px; margin: 0 auto; }
+
+    .about-box {
+      background: white;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin: 20px 0 30px 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border-left: 6px solid #1d4ed8;
+      line-height: 1.6;
     }
-    textarea{min-height:120px;resize:vertical}
-    button{cursor:pointer}
-    .btnrow{display:flex;gap:8px;flex-wrap:wrap}
-    .btnrow button{width:auto}
-    .primary{background:var(--blue);border-color:var(--blue);color:#fff}
-    .ok{background:var(--green);border-color:var(--green);color:#fff}
-    .warn{background:#f59e0b;border-color:#f59e0b;color:#fff}
-    .danger{background:var(--red);border-color:var(--red);color:#fff}
-    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
-    th{background:#f1f5f9;position:sticky;top:0;z-index:2}
-    .pager{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .small{font-size:12px}
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:999px;padding:4px 10px;font-size:12px}
-    .status{font-weight:600}
-    .chat{height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px;background:#fcfcfd}
-    .checks{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:6px}
-    @media (max-width:900px){.checks{grid-template-columns:1fr}}
-    a.inline-link{color:#1d4ed8;text-decoration:none}
-    a.inline-link:hover{text-decoration:underline}
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .gallery img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      object-fit: cover;
+      transition: transform 0.25s ease;
+    }
+
+    .gallery img:hover { transform: scale(1.03); }
+
+    .gallery-caption {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .gallery-caption strong { color: #1d4ed8; display: block; margin-bottom: 4px; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin: 20px 0 10px;
+      align-items: center;
+    }
+
+    #globalSearch {
+      width: min(500px, 92vw);
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+
+    .btn {
+      background: #1d4ed8;
+      color: white;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn:hover { background: #1e40af; }
+
+    .meta {
+      text-align: center;
+      color: #374151;
+      margin: 8px 0 14px;
+      font-size: 0.95rem;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 40px 10px;
+      font-size: 1.05rem;
+      color: #1d4ed8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px 9px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #1e40af;
+      color: white;
+      cursor: pointer;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    tr:hover td { background: #f0f9ff; }
+
+    .long-text {
+      max-width: 450px;
+      white-space: pre-wrap;
+      line-height: 1.42;
+    }
+
+    .filter-row input,
+    .filter-row select {
+      width: 100%;
+      padding: 11px 12px;
+      height: 44px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      background: white;
+    }
+
+    .source-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .source-btn:hover { background: #2563eb; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pagination button, .pagination select {
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid #d1d5db;
+      background: white;
+      cursor: pointer;
+    }
+
+    .pagination button:hover { background: #f3f4f6; }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>Picturebook Figurative Language Database</h1>
-    <p class="muted" style="margin-top:4px;">Research-based open resource for teachers</p>
+  <div class="container">
+    <header>
+      <h1>Picturebook Figurative Language Database</h1>
+      <div class="tagline">Research-based open resource for teachers</div>
+    </header>
 
-    <h3 style="margin-top:14px;">About This Resource</h3>
-    <p class="muted">
-      Here you can search and collect real examples of figurative language expressions for classroom discussion,
-      worksheets, and learning activities. You can quickly find books and multimedia sources by clicking the link
-      next to any metaphor, simile, personification, or hyperbole entry.
-    </p>
-    <p class="muted">
-      You can also select examples from the database and use AI to generate activities, suggest related metaphors,
-      explain an expression, and explore possible origin/history notes.
-    </p>
-    <p class="muted">
-      Try searching <strong>dream</strong>: you may retrieve many expressions that show how one concept can be elaborated in
-      very different figurative directions—for example, dreams as vast/measurable entities, as objects that can be
-      built or trapped, or as goals that require action and struggle.
-    </p>
-    <p class="muted" style="margin-bottom:0;">
-      Use the dropdown filters to explore metaphors by concept/domain, including emotions, love, life and loss,
-      health and illness, games and sport, human relationships, and communication.
-    </p>
+    <div class="about-box">
+      <h2>About This Resource</h2>
+      <p>
+        This database contains over <strong>68,000 figurative language examples</strong> (metaphors,
+        similes, personification, hyperbole) from thousands of picturebooks.
+      </p>
+      <ul>
+        <li><strong>Source Chain of Thought</strong> → AI reasoning about the source domain</li>
+        <li><strong>Target Chain of Thought</strong> → AI reasoning about the target domain</li>
+        <li><strong>AI Short Comment</strong> → Quick quality note + simple explanation</li>
+        <li><strong>Find Source</strong> → Google search shortcut for book/read-aloud</li>
+      </ul>
+    </div>
 
-    <div class="chips" style="margin-top:10px;">
-      <span class="chip">Simile: as brave as a lion</span>
-      <span class="chip">Metaphor: The moon was a ghostly galleon</span>
-      <span class="chip">Personification: The wind whispered</span>
-      <span class="chip">Hyperbole: I could eat a horse</span>
+    <section class="gallery">
+      <div><img src="https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg" alt="Stack of children's picturebooks"></div>
+      <div>
+        <img src="https://thumbs.dreamstime.com/b/majestic-lion-rocky-peak-vibrant-sunset-clouds-majestic-lion-rocky-peak-vibrant-sunset-clouds-420984846.jpg" alt="Majestic lion">
+        <div class="gallery-caption"><strong>Simile</strong>as brave as a lion</div>
+      </div>
+      <div>
+        <img src="https://thumbs.dreamstime.com/b/ghostly-galleon-sails-under-brooding-moonlit-sky-turbulent-sea-majestic-tall-ship-dark-glow-full-moon-357371346.jpg" alt="Ghostly galleon">
+        <div class="gallery-caption"><strong>Metaphor</strong>The moon was a ghostly galleon</div>
+      </div>
+      <div>
+        <img src="https://thumbs.dreamstime.com/b/whispering-landscape-frozen-forest-winter-silence-ethereal-nature-concept-292248604.jpg" alt="Whispering wind through trees">
+        <div class="gallery-caption"><strong>Personification</strong>The wind whispered through the trees</div>
+      </div>
+      <div>
+        <img src="https://www.literacyideas.com/wp-content/uploads/2021/08/Hyperbole-eat-a-horse-1.jpg" alt="Hyperbole expression">
+        <div class="gallery-caption"><strong>Hyperbole</strong>I'm so hungry I could eat a horse</div>
+      </div>
+      <div><img src="https://thumbs.dreamstime.com/b/multicultural-kids-children-playing-reading-books-isolated-white-89339344.jpg" alt="Children reading"></div>
+    </section>
+
+    <div class="controls">
+      <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
+      <button class="btn" onclick="filterTable()">🔍 Search</button>
+      <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
+      <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
+    </div>
+
+    <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
+
+    <div id="loading">Loading large database... (10–20 seconds first time)</div>
+
+    <table id="dataTable" style="display:none;">
+      <thead>
+        <tr id="headerRow"></tr>
+        <tr class="filter-row" id="filterRow"></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div class="pagination" id="pagination" style="display:none;">
+      <button onclick="prevPage()">← Previous</button>
+      <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+      <button onclick="nextPage()">Next →</button>
+      <select id="rowsPerPage" onchange="changeRowsPerPage()">
+        <option value="50">50 rows</option>
+        <option value="100" selected>100 rows</option>
+        <option value="250">250 rows</option>
+      </select>
     </div>
   </div>
 
-  <!-- Controls -->
-  <div class="card">
-    <div class="grid g4">
-      <div>
-        <label class="small">Global search</label>
-        <input id="searchInput" placeholder="Search any text..." />
-      </div>
-      <div>
-        <label class="small">Book Type</label>
-        <select id="bookTypeFilter"><option value="">All</option></select>
-      </div>
-      <div>
-        <label class="small">Figurative Language Type</label>
-        <select id="figTypeFilter"><option value="">All</option></select>
-      </div>
-      <div>
-        <label class="small">Source Domain</label>
-        <select id="sourceDomainFilter"><option value="">All</option></select>
-      </div>
-    </div>
-    <div class="grid g4" style="margin-top:8px;">
-      <div>
-        <label class="small">Target Domain</label>
-        <select id="targetDomainFilter"><option value="">All</option></select>
-      </div>
-      <div>
-        <label class="small">Rows per page</label>
-        <select id="rowsPerPage">
-          <option>50</option>
-          <option selected>100</option>
-          <option>250</option>
-        </select>
-      </div>
-      <div style="display:flex;align-items:flex-end">
-        <button class="primary" id="searchBtn">🔍 Search</button>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <button id="clearBtn">🧹 Clear Filters</button>
-        <button class="ok" id="exportBtn">↓ Export Filtered CSV</button>
-      </div>
-    </div>
-    <p id="loadStatus" class="muted" style="margin:10px 0 0;">Loading database...</p>
-  </div>
-
-  <!-- Table -->
-  <div class="card">
-    <div class="tablewrap">
-      <table>
-        <thead><tr id="theadRow"></tr></thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <div class="pager">
-      <div id="showingText" class="muted">Showing 0 rows</div>
-      <div class="btnrow">
-        <button id="prevBtn">← Previous</button>
-        <span id="pageText" class="small muted" style="align-self:center;">Page 1 of 1</span>
-        <button id="nextBtn">Next →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Prompt Builder -->
-  <div class="card">
-    <h2>Teacher Prompt Builder</h2>
-    <p class="muted">Use filtered rows from the table, then generate a classroom-ready AI prompt.</p>
-
-    <div class="grid g3">
-      <div>
-        <label class="small">1) Pull from filtered table column</label>
-        <select id="pullColumn">
-          <option value="figurative_expression">Figurative Expression</option>
-          <option value="source_domain">Source Domain</option>
-          <option value="target_domain">Target Domain</option>
-          <option value="book_title">Book Title</option>
-        </select>
-      </div>
-      <div style="display:flex;align-items:flex-end">
-        <button id="pullWordsBtn">⬇ Add Unique Values from Filtered Rows</button>
-      </div>
-      <div>
-        <label class="small">Grade band</label>
-        <select id="llmGrade">
-          <option>K–1</option><option>2–3</option><option selected>4–6</option>
-          <option>7–8</option><option>9–12</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid g3" style="margin-top:8px;">
-      <div>
-        <label class="small">Output length</label>
-        <select id="llmLength">
-          <option value="short">Short</option>
-          <option value="medium" selected>Medium</option>
-          <option value="long">Long</option>
-        </select>
-      </div>
-      <div>
-        <label class="small">Text style</label>
-        <select id="llmTextType">
-          <option value="story">Story / read-aloud style</option>
-          <option value="informational">Informational passage</option>
-          <option value="mixed" selected>Mixed</option>
-          <option value="worksheet">Worksheet-only</option>
-        </select>
-      </div>
-      <div>
-        <label class="small">Teacher focus (optional)</label>
-        <input id="llmFocus" placeholder="e.g., explain figurative meaning + compare literal meaning" />
-      </div>
-    </div>
-
-    <div style="margin-top:10px;">
-      <label class="small">Include these teacher tasks</label>
-      <div class="checks">
-        <label><input type="checkbox" class="act-option" value="Generate more examples" checked /> Generate more examples</label>
-        <label><input type="checkbox" class="act-option" value="Story with target examples" checked /> Story with target examples</label>
-        <label><input type="checkbox" class="act-option" value="Explain each expression clearly" checked /> Explain each expression clearly</label>
-        <label><input type="checkbox" class="act-option" value="Create worksheet + answer key" checked /> Create worksheet + answer key</label>
-        <label><input type="checkbox" class="act-option" value="Suggest related metaphors/similes" checked /> Suggest related metaphors/similes</label>
-        <label><input type="checkbox" class="act-option" value="Literal vs figurative sorting activity" checked /> Literal vs figurative sorting activity</label>
-      </div>
-    </div>
-
-    <div style="margin-top:10px;">
-      <label class="small">2) Target words / figurative examples (one per line or comma-separated)</label>
-      <textarea id="llmInput" placeholder="Paste selected examples here..."></textarea>
-    </div>
-
-    <div class="btnrow" style="margin-top:8px;">
-      <button class="primary" id="genPromptBtn">✨ Generate Prompt</button>
-      <button id="copyPromptBtn">📋 Copy Prompt</button>
-      <button id="clearPromptBtn">Clear Prompt Form</button>
-    </div>
-
-    <div style="margin-top:10px;">
-      <label class="small">Generated prompt</label>
-      <textarea id="finalPrompt"></textarea>
-    </div>
-
-    <div class="grid g3" style="margin-top:8px;">
-      <div>
-        <label class="small">Open in</label>
-        <select id="llmProvider">
-          <option value="chatgpt">ChatGPT</option>
-          <option value="gemini">Gemini</option>
-          <option value="claude">Claude</option>
-          <option value="local">Local WebLLM (below)</option>
-        </select>
-      </div>
-      <div style="display:flex;align-items:flex-end">
-        <button class="ok" id="openPromptBtn">🚀 Open with Prompt</button>
-      </div>
-      <div id="llmStatus" class="status muted" style="display:flex;align-items:flex-end;"></div>
-    </div>
-  </div>
-
-  <!-- Local WebLLM -->
-  <div class="card">
-    <h2>Local LLM (WebLLM)</h2>
-    <p class="muted">Runs in your browser with WebGPU (best on desktop Chrome/Edge + good GPU).</p>
-
-    <div class="grid g3">
-      <div>
-        <label class="small">Model</label>
-        <select id="webllmModel"></select>
-      </div>
-      <div style="display:flex;align-items:flex-end">
-        <button id="loadWebLLMBtn">Load Model</button>
-      </div>
-      <div id="webllmStatus" class="status muted" style="display:flex;align-items:flex-end;">Select model and click Load.</div>
-    </div>
-
-    <div class="chat" id="webllmChat" style="margin-top:10px;"></div>
-
-    <div class="grid g2" style="margin-top:8px;">
-      <div>
-        <label class="small">Message</label>
-        <input id="webllmInput" placeholder="Type a request..." />
-      </div>
-      <div class="btnrow" style="align-items:flex-end;">
-        <button class="primary" id="sendWebLLMBtn">Send</button>
-        <button id="usePromptBtn">Use Generated Prompt</button>
-        <button class="danger" id="resetWebLLMBtn">Reset Chat</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-/* =========================
-   DATA + TABLE LOGIC
-========================= */
-
-// Put your CSV URL/path here:
-const CSV_URL = "data/figurative_language_database.csv";
-
-let allRows = [];
-let filteredRows = [];
-let headers = [];
-let currentPage = 1;
-
-const state = {
-  rowsPerPage: 100,
-  col: {
-    bookType: null,
-    figType: null,
-    sourceDomain: null,
-    targetDomain: null,
-    expression: null,
-    title: null
-  }
-};
-
-const el = id => document.getElementById(id);
-
-function normalizeKey(k){ return String(k || "").trim().toLowerCase().replace(/\s+/g, "_"); }
-
-function detectColumns(hdrs){
-  const map = {};
-  hdrs.forEach(h => map[normalizeKey(h)] = h);
-
-  // flexible matching
-  const pick = (...cands) => {
-    for (const c of cands){
-      if (map[c]) return map[c];
-      const hit = Object.keys(map).find(k => k.includes(c));
-      if (hit) return map[hit];
-    }
-    return null;
-  };
-
-  state.col.bookType = pick("book_type","booktype","genre");
-  state.col.figType = pick("figurative_language_type","figurative_type","figure_type","type");
-  state.col.sourceDomain = pick("source_domain","source");
-  state.col.targetDomain = pick("target_domain","target");
-  state.col.expression = pick("figurative_expression","expression","example","quote","text");
-  state.col.title = pick("book_title","title","book");
-}
-
-function cleanDropdownValue(v){
-  if (v == null) return null;
-  const s = String(v).trim().replace(/\s+/g, " ");
-  if (!s) return null;
-  if (/^\d+(\.\d+)?$/.test(s)) return null;       // numeric-only
-  const words = s.split(" ").filter(Boolean);
-  if (words.length > 5) return null;              // >5 words excluded
-  if (/^[\W_]+$/.test(s)) return null;            // punctuation-only
-  return s;
-}
-
-function uniqueCleanValues(rows, col){
-  const set = new Set();
-  rows.forEach(r => {
-    const v = cleanDropdownValue(r[col]);
-    if (v) set.add(v);
-  });
-  return [...set].sort((a,b)=>a.localeCompare(b));
-}
-
-function fillSelect(selectId, values){
-  const s = el(selectId);
-  const cur = s.value;
-  s.innerHTML = '<option value="">All</option>';
-  values.forEach(v => {
-    const o = document.createElement("option");
-    o.value = v; o.textContent = v; s.appendChild(o);
-  });
-  if ([...s.options].some(o => o.value === cur)) s.value = cur;
-}
-
-function renderHeader(){
-  const tr = el("theadRow");
-  tr.innerHTML = "";
-  headers.forEach(h => {
-    const th = document.createElement("th");
-    th.textContent = h;
-    tr.appendChild(th);
-  });
-}
-
-function linkifyFindSource(row, key, value){
-  if (!value) return "";
-  const nk = normalizeKey(key);
-  if (nk.includes("find_source") || nk.includes("google") || nk.includes("search_link")){
-    return `<a class="inline-link" href="${String(value)}" target="_blank" rel="noopener">Find Source</a>`;
-  }
-  return null;
-}
-
-function renderRows(){
-  const tbody = el("tbody");
-  tbody.innerHTML = "";
-
-  const total = filteredRows.length;
-  const rpp = state.rowsPerPage;
-  const pages = Math.max(1, Math.ceil(total / rpp));
-  if (currentPage > pages) currentPage = pages;
-
-  const start = (currentPage - 1) * rpp;
-  const end = Math.min(total, start + rpp);
-  const pageRows = filteredRows.slice(start, end);
-
-  pageRows.forEach(r => {
-    const tr = document.createElement("tr");
-    headers.forEach(h => {
-      const td = document.createElement("td");
-      const link = linkifyFindSource(r, h, r[h]);
-      if (link !== null) td.innerHTML = link;
-      else td.textContent = r[h] ?? "";
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-
-  el("showingText").textContent = `Showing ${total.toLocaleString()} rows`;
-  el("pageText").textContent = `Page ${currentPage} of ${pages}`;
-  el("prevBtn").disabled = currentPage <= 1;
-  el("nextBtn").disabled = currentPage >= pages;
-}
-
-function applyFilters(){
-  const q = el("searchInput").value.trim().toLowerCase();
-  const fBook = el("bookTypeFilter").value;
-  const fFig  = el("figTypeFilter").value;
-  const fSrc  = el("sourceDomainFilter").value;
-  const fTgt  = el("targetDomainFilter").value;
-
-  filteredRows = allRows.filter(r => {
-    if (fBook && String(r[state.col.bookType] || "") !== fBook) return false;
-    if (fFig  && String(r[state.col.figType] || "") !== fFig) return false;
-    if (fSrc  && String(r[state.col.sourceDomain] || "") !== fSrc) return false;
-    if (fTgt  && String(r[state.col.targetDomain] || "") !== fTgt) return false;
-    if (q){
-      const blob = headers.map(h => String(r[h] ?? "")).join(" ").toLowerCase();
-      if (!blob.includes(q)) return false;
-    }
-    return true;
-  });
-
-  currentPage = 1;
-  renderRows();
-}
-
-function clearFilters(){
-  ["searchInput","bookTypeFilter","figTypeFilter","sourceDomainFilter","targetDomainFilter"].forEach(id=>{
-    const node = el(id);
-    if (!node) return;
-    if (node.tagName === "SELECT") node.value = "";
-    else node.value = "";
-  });
-  applyFilters();
-}
-
-function exportFilteredCSV(){
-  const csv = Papa.unparse(filteredRows);
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "filtered_figurative_language.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function loadCSV(){
-  el("loadStatus").textContent = "Loading large database... (10–20 seconds first time)";
-  Papa.parse(CSV_URL, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete: (res) => {
-      allRows = res.data || [];
-      headers = res.meta.fields || Object.keys(allRows[0] || {});
-      detectColumns(headers);
-      renderHeader();
-
-      // populate cleaned dropdowns
-      if (state.col.bookType) fillSelect("bookTypeFilter", uniqueCleanValues(allRows, state.col.bookType));
-      if (state.col.figType) fillSelect("figTypeFilter", uniqueCleanValues(allRows, state.col.figType));
-      if (state.col.sourceDomain) fillSelect("sourceDomainFilter", uniqueCleanValues(allRows, state.col.sourceDomain));
-      if (state.col.targetDomain) fillSelect("targetDomainFilter", uniqueCleanValues(allRows, state.col.targetDomain));
-
-      filteredRows = [...allRows];
-      renderRows();
-      el("loadStatus").textContent = `Loaded ${allRows.length.toLocaleString()} rows.`;
-    },
-    error: (err) => {
-      console.error(err);
-      el("loadStatus").textContent = "❌ Failed to load CSV. Check CSV_URL path.";
-      el("loadStatus").style.color = "red";
-    }
-  });
-}
-
-/* =========================
-   PROMPT BUILDER
-========================= */
-
-function getColumnFromPickerValue(v){
-  const map = {
-    figurative_expression: state.col.expression,
-    source_domain: state.col.sourceDomain,
-    target_domain: state.col.targetDomain,
-    book_title: state.col.title
-  };
-  return map[v] || state.col.expression || headers[0];
-}
-
-function addFromFilteredRows(){
-  const col = getColumnFromPickerValue(el("pullColumn").value);
-  if (!col){
-    el("llmStatus").textContent = "❌ Column not found in dataset.";
-    el("llmStatus").style.color = "red";
-    return;
-  }
-
-  const vals = new Set();
-  filteredRows.forEach(r => {
-    const s = String(r[col] ?? "").trim();
-    if (s) vals.add(s);
-  });
-
-  const list = [...vals].slice(0, 200); // keep prompt manageable
-  const box = el("llmInput");
-  const existing = box.value.trim();
-  box.value = existing ? (existing + "\n" + list.join("\n")) : list.join("\n");
-
-  el("llmStatus").textContent = `✅ Added ${list.length} unique values from filtered rows.`;
-  el("llmStatus").style.color = "#15803d";
-}
-
-function buildPromptText(items, cfg){
-  const lenMap = {
-    short: "150–250 words",
-    medium: "250–450 words",
-    long: "450–700 words"
-  };
-
-  let p = "";
-  p += "You are an expert literacy teacher and curriculum writer specializing in figurative language instruction.\n\n";
-  p += "TARGET EXPRESSIONS (use all naturally):\n";
-  p += items.join("\n") + "\n\n";
-  p += "SETTINGS:\n";
-  p += `- Grade band: ${cfg.grade}\n`;
-  p += `- Text style: ${cfg.textType}\n`;
-  p += `- Length target: ${lenMap[cfg.length] || lenMap.medium}\n`;
-  p += `- Teacher focus: ${cfg.focus || "Meaning, interpretation, and classroom use"}\n\n`;
-
-  p += "REQUIRED OUTPUT:\n";
-  p += "1) Student-friendly explanation for each expression:\n";
-  p += "   - literal meaning\n";
-  p += "   - figurative meaning\n";
-  p += "   - why the comparison is effective\n";
-  p += "   - one simple example sentence\n\n";
-
-  if (cfg.activities.includes("Generate more examples")) {
-    p += "2) Add 2 new related figurative examples for each target expression.\n";
-  }
-  if (cfg.activities.includes("Story with target examples")) {
-    p += "3) Write one engaging classroom text that includes many target expressions naturally.\n";
-  }
-  if (cfg.activities.includes("Explain each expression clearly")) {
-    p += "4) Add concise teacher notes for possible misconceptions.\n";
-  }
-  if (cfg.activities.includes("Create worksheet + answer key")) {
-    p += "5) Create a printable worksheet plus answer key.\n";
-  }
-  if (cfg.activities.includes("Suggest related metaphors/similes")) {
-    p += "6) Suggest related metaphors/similes grouped by theme (emotions, relationships, conflict, goals, etc.).\n";
-  }
-  if (cfg.activities.includes("Literal vs figurative sorting activity")) {
-    p += "7) Create a literal-vs-figurative sorting activity with 12 items.\n";
-  }
-
-  p += "\nFORMAT:\n";
-  p += "- Use clear headings\n";
-  p += "- Keep language grade-appropriate\n";
-  p += "- Make everything classroom-ready and easy to print\n";
-
-  return p;
-}
-
-function generatePrompt(){
-  const raw = el("llmInput").value.trim();
-  const status = el("llmStatus");
-  if (!raw){
-    status.textContent = "❌ Please paste or pull target expressions first.";
-    status.style.color = "red";
-    return;
-  }
-
-  const items = raw.split(/\r?\n|,/).map(s=>s.trim()).filter(Boolean);
-  const activities = [...document.querySelectorAll(".act-option:checked")].map(x=>x.value);
-  const cfg = {
-    grade: el("llmGrade").value,
-    length: el("llmLength").value,
-    textType: el("llmTextType").value,
-    focus: el("llmFocus").value.trim(),
-    activities
-  };
-
-  el("finalPrompt").value = buildPromptText(items, cfg);
-  status.textContent = `✅ Prompt ready (${items.length} items, ${activities.length} options).`;
-  status.style.color = "#15803d";
-}
-
-function copyPrompt(){
-  const txt = el("finalPrompt").value.trim();
-  if (!txt){
-    el("llmStatus").textContent = "❌ Generate a prompt first.";
-    el("llmStatus").style.color = "red";
-    return;
-  }
-  navigator.clipboard.writeText(txt).then(()=>{
-    el("llmStatus").textContent = "✅ Prompt copied.";
-    el("llmStatus").style.color = "#15803d";
-  }).catch(()=>{
-    el("llmStatus").textContent = "❌ Copy failed.";
-    el("llmStatus").style.color = "red";
-  });
-}
-
-function openPrompt(){
-  const prompt = el("finalPrompt").value.trim();
-  const provider = el("llmProvider").value;
-  if (!prompt){
-    el("llmStatus").textContent = "❌ Generate a prompt first.";
-    el("llmStatus").style.color = "red";
-    return;
-  }
-
-  if (provider === "local"){
-    el("webllmInput").value = prompt;
-    el("llmStatus").textContent = "✅ Prompt moved to Local WebLLM input below.";
-    el("llmStatus").style.color = "#15803d";
-    return;
-  }
-
-  const encoded = encodeURIComponent(prompt);
-  let url = "https://chatgpt.com/?q=" + encoded;
-  if (provider === "gemini") url = "https://gemini.google.com/app?prompt=" + encoded;
-  if (provider === "claude") url = "https://claude.ai/new";
-
-  const w = window.open(url, "_blank");
-  if (!w){
-    el("llmStatus").textContent = "❌ Popup blocked.";
-    el("llmStatus").style.color = "red";
-    return;
-  }
-
-  navigator.clipboard.writeText(prompt).then(()=>{
-    el("llmStatus").textContent = "✅ Opened tab + copied prompt.";
-    el("llmStatus").style.color = "#15803d";
-  }).catch(()=>{
-    el("llmStatus").textContent = "✅ Opened tab. Paste prompt manually if needed.";
-    el("llmStatus").style.color = "#15803d";
-  });
-}
-
-function clearPromptForm(){
-  ["llmInput","llmFocus","finalPrompt"].forEach(id => el(id).value = "");
-  document.querySelectorAll(".act-option").forEach(c => c.checked = true);
-  el("llmStatus").textContent = "";
-}
-
-/* =========================
-   EVENTS
-========================= */
-el("searchBtn").addEventListener("click", applyFilters);
-el("clearBtn").addEventListener("click", clearFilters);
-el("exportBtn").addEventListener("click", exportFilteredCSV);
-
-["searchInput","bookTypeFilter","figTypeFilter","sourceDomainFilter","targetDomainFilter"]
-  .forEach(id => el(id).addEventListener("input", applyFilters));
-
-el("rowsPerPage").addEventListener("change", (e)=>{
-  state.rowsPerPage = Number(e.target.value) || 100;
-  currentPage = 1;
-  renderRows();
-});
-el("prevBtn").addEventListener("click", ()=>{ if(currentPage>1){ currentPage--; renderRows(); }});
-el("nextBtn").addEventListener("click", ()=>{
-  const pages = Math.max(1, Math.ceil(filteredRows.length / state.rowsPerPage));
-  if(currentPage<pages){ currentPage++; renderRows(); }
-});
-
-el("pullWordsBtn").addEventListener("click", addFromFilteredRows);
-el("genPromptBtn").addEventListener("click", generatePrompt);
-el("copyPromptBtn").addEventListener("click", copyPrompt);
-el("openPromptBtn").addEventListener("click", openPrompt);
-el("clearPromptBtn").addEventListener("click", clearPromptForm);
-
-loadCSV();
-</script>
-
-<script type="module">
-  import * as webllm from "https://esm.run/@mlc-ai/web-llm";
-
-  let engine = null;
-  let messages = [
-    { role: "system", content: "You are a helpful literacy assistant for teachers focusing on figurative language." }
-  ];
-
-  const statusEl = () => document.getElementById("webllmStatus");
-  const modelEl = () => document.getElementById("webllmModel");
-  const chatEl = () => document.getElementById("webllmChat");
-  const inputEl = () => document.getElementById("webllmInput");
-  const loadBtnEl = () => document.getElementById("loadWebLLMBtn");
-
-  function setStatus(msg, color="#374151"){
-    const el = statusEl();
-    if (!el) return;
-    el.textContent = msg;
-    el.style.color = color;
-  }
-
-  function addChat(role, text){
-    const d = document.createElement("div");
-    d.style.margin = "8px 0";
-    d.innerHTML = `<strong>${role}:</strong> <span></span>`;
-    d.querySelector("span").textContent = text;
-    chatEl().appendChild(d);
-    chatEl().scrollTop = chatEl().scrollHeight;
-    return d.querySelector("span");
-  }
-
-  function isChatModel(id=""){
-    const s = id.toLowerCase();
-    return !s.includes("embed") && !s.includes("embedding") && !s.includes("rerank");
-  }
-
-  function populateModels(){
-    const all = (webllm.prebuiltAppConfig?.model_list || []).filter(m => isChatModel(m.model_id));
-    const preferred = [
-      "Llama-3.2-1B-Instruct",
-      "Llama-3.2-3B-Instruct",
-      "Qwen2.5-1.5B-Instruct",
-      "Qwen2.5-3B-Instruct",
-      "Phi-3.5-mini"
-    ];
-
-    let picks = preferred
-      .map(name => all.find(m => m.model_id.toLowerCase().includes(name.toLowerCase())))
-      .filter(Boolean);
-
-    if (!picks.length) picks = all.slice(0, 6);
-
-    const sel = modelEl();
-    sel.innerHTML = "";
-    if (!picks.length){
-      const o = document.createElement("option");
-      o.textContent = "No compatible chat models found";
-      sel.appendChild(o);
-      return;
+  <script>
+    let fullData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    let rowsPerPage = 100;
+    const sortState = { column: null, asc: true };
+
+    // These columns will use dropdown filters (case-insensitive match by header text)
+    const DROPDOWN_FILTER_COLUMNS = new Set([
+      'book type',
+      'figurative language type',
+      'source domain',
+      'target domain'
+    ]);
+
+    function isDropdownColumn(colName) {
+      return DROPDOWN_FILTER_COLUMNS.has(String(colName).toLowerCase().trim());
     }
 
-    picks.forEach(m => {
-      const o = document.createElement("option");
-      o.value = m.model_id;
-      const vram = m.vram_required_MB ? ` (~${Math.round(m.vram_required_MB/1024)}GB VRAM)` : "";
-      o.textContent = `${m.model_id}${vram}`;
-      sel.appendChild(o);
-    });
-  }
-
-  async function initWebLLM(){
-    if (!window.isSecureContext){
-      setStatus("❌ WebLLM needs HTTPS or localhost.", "red");
-      return;
-    }
-    if (!navigator.gpu){
-      setStatus("❌ WebGPU not available on this browser/device.", "red");
-      return;
+    function normalizeSpaces(s) {
+      return String(s ?? '').replace(/\s+/g, ' ').trim();
     }
 
-    const selected = modelEl().value;
-    if (!selected){
-      setStatus("❌ Please select a model first.", "red");
-      return;
+    function wordCount(s) {
+      const cleaned = normalizeSpaces(s);
+      return cleaned ? cleaned.split(' ').length : 0;
     }
 
-    loadBtnEl().disabled = true;
-    setStatus("Loading model... first time may take 30–180s.", "#1d4ed8");
+    function isBadDropdownValue(v) {
+      const cleaned = normalizeSpaces(v);
+      if (!cleaned) return true;              // empty
+      if (/^\d+$/.test(cleaned)) return true; // numeric-only like "6"
+      if (wordCount(cleaned) > 5) return true;// more than 5 words
+      return false;
+    }
 
-    try{
-      engine = await webllm.CreateMLCEngine(selected, {
-        initProgressCallback: (r) => {
-          const pct = r.progress ? ` ${Math.round(r.progress*100)}%` : "";
-          setStatus(`Loading ${selected}: ${r.text || ""}${pct}`, "#1d4ed8");
+    function getUniqueColumnValues(colName) {
+      return [...new Set(
+        fullData
+          .map(row => normalizeSpaces(row[colName]))
+          .filter(v => !isBadDropdownValue(v))
+      )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }
+
+    async function loadFromZip() {
+      try {
+        const response = await fetch('Figurative%20Language%20Database.zip');
+        if (!response.ok) throw new Error(`HTTP ${response.status}: could not fetch ZIP file`);
+
+        const zipBlob = await response.blob();
+        const zip = await JSZip.loadAsync(zipBlob);
+        const csvFile = Object.values(zip.files).find(f => !f.dir && f.name.toLowerCase().endsWith('.csv'));
+        if (!csvFile) throw new Error('No CSV file found inside ZIP');
+
+        const csvText = await csvFile.async("string");
+
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            fullData = (results.data || []).filter(row =>
+              Object.values(row).some(v => String(v ?? '').trim() !== '')
+            );
+
+            filteredData = [...fullData];
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dataTable').style.display = 'table';
+            document.getElementById('pagination').style.display = 'flex';
+
+            renderHeadersAndFilters();
+            renderTable();
+          },
+          error: (err) => {
+            document.getElementById('loading').textContent = 'CSV parse error: ' + err.message;
+          }
+        });
+      } catch (err) {
+        document.getElementById('loading').textContent =
+          'Error loading ZIP/CSV. Make sure "Figurative Language Database.zip" is in the same folder as this HTML file. Details: ' + err.message;
+      }
+    }
+
+    function renderHeadersAndFilters() {
+      const columns = Object.keys(fullData[0] || {});
+      const headerRow = document.getElementById('headerRow');
+      const filterRow = document.getElementById('filterRow');
+
+      headerRow.innerHTML = '';
+      filterRow.innerHTML = '';
+
+      columns.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        th.title = 'Click to sort';
+        th.onclick = () => sortTable(col);
+        headerRow.appendChild(th);
+      });
+
+      const actionTh = document.createElement('th');
+      actionTh.textContent = 'Find Source';
+      headerRow.appendChild(actionTh);
+
+      columns.forEach(col => {
+        const td = document.createElement('td');
+
+        if (isDropdownColumn(col)) {
+          const select = document.createElement('select');
+          select.dataset.col = col;
+          select.onchange = filterTable;
+
+          const allOption = document.createElement('option');
+          allOption.value = '';
+          allOption.textContent = 'All';
+          select.appendChild(allOption);
+
+          getUniqueColumnValues(col).forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+          });
+
+          td.appendChild(select);
+        } else {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Search word/expression...';
+          input.dataset.col = col;
+          input.oninput = filterTable;
+          td.appendChild(input);
+        }
+
+        filterRow.appendChild(td);
+      });
+
+      filterRow.appendChild(document.createElement('td')); // action column filter placeholder
+    }
+
+    function filterTable() {
+      const globalTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
+
+      const colFilters = {};
+      document.querySelectorAll('#filterRow [data-col]').forEach(el => {
+        const col = el.dataset.col;
+        const rawVal = normalizeSpaces(el.value);
+        if (!rawVal) return;
+
+        if (el.tagName === 'SELECT') {
+          colFilters[col] = { type: 'exact', value: rawVal.toLowerCase() };
+        } else {
+          colFilters[col] = { type: 'contains', value: rawVal.toLowerCase() };
         }
       });
-      setStatus(`✅ Model loaded: ${selected}`, "#15803d");
-      addChat("System", `Model ready: ${selected}`);
-    }catch(err){
-      console.error(err);
-      setStatus(`❌ Failed to load model: ${err?.message || err}`, "red");
-    }finally{
-      loadBtnEl().disabled = false;
-    }
-  }
 
-  async function sendWebLLM(){
-    if (!engine){
-      setStatus("❌ Load a model first.", "red");
-      return;
-    }
+      filteredData = fullData.filter(row => {
+        if (globalTerm) {
+          const rowText = Object.values(row).map(v => String(v ?? '')).join(' ').toLowerCase();
+          if (!rowText.includes(globalTerm)) return false;
+        }
 
-    const userText = (inputEl().value || "").trim();
-    if (!userText) return;
+        for (const col in colFilters) {
+          const cell = normalizeSpaces(row[col]).toLowerCase();
+          const f = colFilters[col];
 
-    inputEl().value = "";
-    addChat("You", userText);
-    messages.push({ role: "user", content: userText });
+          if (f.type === 'exact') {
+            if (cell !== f.value) return false;
+          } else {
+            if (!cell.includes(f.value)) return false;
+          }
+        }
 
-    const aiSpan = addChat("AI", "");
-    let acc = "";
-
-    try{
-      const stream = await engine.chat.completions.create({
-        messages,
-        stream: true,
-        temperature: 0.7
+        return true;
       });
 
-      for await (const chunk of stream){
-        const token = chunk?.choices?.[0]?.delta?.content || "";
-        acc += token;
-        aiSpan.textContent = acc;
-        chatEl().scrollTop = chatEl().scrollHeight;
+      currentPage = 1;
+      renderTable();
+    }
+
+    function renderTable() {
+      const start = (currentPage - 1) * rowsPerPage;
+      const pageData = filteredData.slice(start, start + rowsPerPage);
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      pageData.forEach(row => {
+        const tr = document.createElement('tr');
+
+        Object.keys(row).forEach(col => {
+          const td = document.createElement('td');
+          const val = row[col] ?? '';
+
+          if (
+            ['Quotation from Source', 'Source Chain of Thought', 'Target Chain of Thought', 'AI Short Comment']
+            .includes(col)
+          ) {
+            td.className = 'long-text';
+          }
+
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+
+        const actionTd = document.createElement('td');
+        const source = String(row['Source Attribution'] ?? '').trim();
+
+        if (source) {
+          const btn = document.createElement('button');
+          btn.className = 'source-btn';
+          btn.textContent = '🔍 Google';
+          btn.onclick = () => window.open(
+            `https://www.google.com/search?q=${encodeURIComponent(source + ' read aloud')}`,
+            '_blank'
+          );
+          actionTd.appendChild(btn);
+        } else {
+          actionTd.textContent = '';
+        }
+
+        tr.appendChild(actionTd);
+        tbody.appendChild(tr);
+      });
+
+      const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      document.getElementById('rowCount').textContent = filteredData.length.toLocaleString();
+      document.getElementById('currentPage').textContent = currentPage;
+      document.getElementById('totalPages').textContent = totalPages;
+    }
+
+    function sortTable(column) {
+      if (sortState.column === column) {
+        sortState.asc = !sortState.asc;
+      } else {
+        sortState.column = column;
+        sortState.asc = true;
       }
 
-      messages.push({ role: "assistant", content: acc || "(No output)" });
-      setStatus("✅ Response complete.", "#15803d");
-    }catch(err){
-      console.error(err);
-      setStatus(`❌ Generation failed: ${err?.message || err}`, "red");
+      filteredData.sort((a, b) => {
+        const av = String(a[column] ?? '').toLowerCase();
+        const bv = String(b[column] ?? '').toLowerCase();
+        const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+        return sortState.asc ? cmp : -cmp;
+      });
+
+      currentPage = 1;
+      renderTable();
     }
-  }
 
-  function resetWebLLM(){
-    messages = [
-      { role: "system", content: "You are a helpful literacy assistant for teachers focusing on figurative language." }
-    ];
-    chatEl().innerHTML = "";
-    setStatus("Chat reset.");
-  }
-
-  document.getElementById("loadWebLLMBtn").addEventListener("click", initWebLLM);
-  document.getElementById("sendWebLLMBtn").addEventListener("click", sendWebLLM);
-  document.getElementById("resetWebLLMBtn").addEventListener("click", resetWebLLM);
-
-  document.getElementById("usePromptBtn").addEventListener("click", () => {
-    const p = (document.getElementById("finalPrompt").value || "").trim();
-    if (!p){
-      setStatus("❌ Generate a prompt first.", "red");
-      return;
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
     }
-    document.getElementById("webllmInput").value = p;
-    setStatus("✅ Prompt copied into local chat input.", "#15803d");
-  });
 
-  document.getElementById("webllmInput").addEventListener("keydown", (e)=>{
-    if (e.key === "Enter"){
-      e.preventDefault();
-      sendWebLLM();
+    function nextPage() {
+      const maxPage = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+      if (currentPage < maxPage) {
+        currentPage++;
+        renderTable();
+      }
     }
-  });
 
-  window.addEventListener("load", () => {
-    setTimeout(() => {
-      populateModels();
-      setStatus("Select a model, then click Load Model.");
-    }, 400);
-  });
-</script>
+    function changeRowsPerPage() {
+      rowsPerPage = parseInt(document.getElementById('rowsPerPage').value, 10) || 100;
+      currentPage = 1;
+      renderTable();
+    }
+
+    function clearAllFilters() {
+      document.getElementById('globalSearch').value = '';
+      document.querySelectorAll('#filterRow input[data-col]').forEach(i => i.value = '');
+      document.querySelectorAll('#filterRow select[data-col]').forEach(s => s.value = '');
+      filteredData = [...fullData];
+      currentPage = 1;
+      renderTable();
+    }
+
+    function exportCSV() {
+      if (!filteredData.length) return;
+
+      const headers = Object.keys(filteredData[0]);
+      let csv = headers.join(',') + '\n';
+
+      filteredData.forEach(row => {
+        const values = headers.map(h => `"${String(row[h] ?? '').replace(/"/g, '""')}"`);
+        csv += values.join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'figurative_language_filtered.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    document.getElementById('globalSearch').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') filterTable();
+    });
+
+    window.onload = loadFromZip;
+  </script>
 </body>
 </html>
