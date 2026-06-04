@@ -134,16 +134,7 @@
       line-height: 1.42;
     }
 
-    .filter-row input {
-      width: 100%;
-      padding: 11px 12px;
-      height: 44px;
-      box-sizing: border-box;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
-      font-size: 14px;
-    }
-
+    .filter-row input,
     .filter-row select {
       width: 100%;
       padding: 11px 12px;
@@ -266,7 +257,7 @@
     let rowsPerPage = 100;
     const sortState = { column: null, asc: true };
 
-    // Columns that should use dropdown filters (case-insensitive)
+    // columns that should use dropdown filters
     const DROPDOWN_FILTER_COLUMNS = new Set([
       'book type',
       'figurative language type',
@@ -275,11 +266,16 @@
     ]);
 
     function normalizeColName(name) {
-      return String(name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+      return String(name || '').toLowerCase().trim();
     }
 
     function isDropdownColumn(colName) {
       return DROPDOWN_FILTER_COLUMNS.has(normalizeColName(colName));
+    }
+
+    function wordCount(text) {
+      const words = String(text || '').trim().match(/\S+/g);
+      return words ? words.length : 0;
     }
 
     function getUniqueColumnValues(colName) {
@@ -287,6 +283,7 @@
         fullData
           .map(row => String(row[colName] ?? '').trim())
           .filter(v => v !== '')
+          .filter(v => wordCount(v) <= 5) // only show values with <= 5 words
       )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
     }
 
@@ -362,10 +359,10 @@
           select.appendChild(allOption);
 
           getUniqueColumnValues(col).forEach(v => {
-            const option = document.createElement('option');
-            option.value = v;
-            option.textContent = v;
-            select.appendChild(option);
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
           });
 
           td.appendChild(select);
@@ -389,13 +386,15 @@
 
       const colFilters = {};
       document.querySelectorAll('#filterRow [data-col]').forEach(el => {
+        const col = el.dataset.col;
         const val = String(el.value ?? '').trim();
         if (!val) return;
 
-        colFilters[el.dataset.col] = {
-          type: el.tagName === 'SELECT' ? 'exact' : 'contains',
-          value: val.toLowerCase()
-        };
+        if (el.tagName === 'SELECT') {
+          colFilters[col] = { type: 'exact', value: val.toLowerCase() };
+        } else {
+          colFilters[col] = { type: 'contains', value: val.toLowerCase() };
+        }
       });
 
       filteredData = fullData.filter(row => {
@@ -408,12 +407,12 @@
         // Per-column filters
         for (const col in colFilters) {
           const cell = String(row[col] ?? '').toLowerCase();
-          const filter = colFilters[col];
+          const f = colFilters[col];
 
-          if (filter.type === 'exact') {
-            if (cell !== filter.value) return false;
+          if (f.type === 'exact') {
+            if (cell !== f.value) return false;
           } else {
-            if (!cell.includes(filter.value)) return false;
+            if (!cell.includes(f.value)) return false;
           }
         }
 
