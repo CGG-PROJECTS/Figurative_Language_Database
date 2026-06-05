@@ -637,6 +637,57 @@
   function getCurrentFilteredDataset() {
     return Array.isArray(filteredData) ? filteredData : [];
   }
+function cleanJuvenileTitle(text) {
+  let s = normalizeSpaces(text || '');
+
+  // Turn underscores into spaces
+  s = s.replace(/_+/g, ' ');
+
+  // Remove everything from ".txt" onward (e.g., "_.txt read aloud")
+  s = s.split(/\.txt/i)[0];
+
+  // Also remove trailing "read aloud" if present without .txt
+  s = s.replace(/\bread\s*aloud\b.*$/i, '');
+
+  // Final cleanup
+  s = s.replace(/\s+/g, ' ').trim();
+
+  return s;
+}
+
+function cleanTitleForSearch(text) {
+  let s = normalizeSpaces(text || '');
+  s = s.replace(/_+/g, ' ');                 // "_" -> space
+  s = s.split(/\.txt/i)[0];                  // remove .txt and anything after
+  s = s.replace(/\bread\s*aloud\b.*$/i, ''); // remove trailing "read aloud"
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
+}
+
+function buildGoogleQueryForRow(row) {
+  const bookType = normalizeSpaces(
+    getFirstNonEmpty(row, ['Book Type', 'book type'])
+  ).toLowerCase();
+
+  const source = getFirstNonEmpty(row, ['Source Attribution', 'Book', 'Title']);
+  const quote  = getFirstNonEmpty(row, ['Quotation from Source', 'Quotation', 'Quote']);
+  const baseTitle = cleanTitleForSearch(source || quote);
+
+  if (!baseTitle) return '';
+
+  // Juvenile fiction -> "... book"
+  if (bookType.includes('juvenile fiction')) {
+    return `${baseTitle} book`;
+  }
+
+  // Picturebook(s) -> "... read aloud"
+  if (bookType.includes('picturebook')) {
+    return `${baseTitle} read aloud`;
+  }
+
+  // default for all other types
+  return `${baseTitle} read aloud`;
+}
 
   function sampleRows(arr, n, mode = "random") {
     if (!Array.isArray(arr) || !arr.length || n <= 0) return [];
@@ -888,11 +939,14 @@
       const googleBtn = document.createElement('button');
       googleBtn.className = 'source-btn';
       googleBtn.textContent = '🔍 Google: Find the text';
-      googleBtn.onclick = () => {
-        const q = source || quote;
-        if (!q) return;
-        window.open(`https://www.google.com/search?q=${encodeURIComponent(q + ' read aloud')}`, '_blank');
-      };
+googleBtn.onclick = () => {
+  const q = buildGoogleQueryForRow(row);
+  if (!q) return;
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+};
+
+
+
       actionTd.appendChild(googleBtn);
 
       const explainBtn = document.createElement('button');
