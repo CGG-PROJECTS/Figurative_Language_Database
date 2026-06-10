@@ -332,6 +332,15 @@
     }
     .modal textarea{ min-height: 120px; resize: vertical; }
     .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+    /* Excel-like multi-cell selection */
+.db-table td, .db-table th { cursor: cell; }
+.db-table td { user-select: none; -webkit-user-select: none; }
+.db-table td.excel-selected { background: #dbeafe !important; }
+.db-table td.excel-anchor { outline: 2px solid #2563eb; outline-offset: -2px; }
+body.excel-dragging { user-select: none; -webkit-user-select: none; }
+
+/* Optional: highlight sparse selection */
+.db-table td.excel-sparse { background: #fde68a !important; }
   </style>
 </head>
 <body>
@@ -348,28 +357,33 @@
 
     <!-- DATABASE TAB -->
     <section id="tab-database" class="tab-pane active">
-      <div class="about-box">
-        <h2>About This Resource</h2>
-        <p>
-          Here you can search and collect real examples of figurative language expressions for
-          discussion, worksheets, and classroom activities. You can quickly find books and multimedia
-          sources by clicking the link next to any metaphor, simile, personification, or hyperbole entry.
-        </p>
-        <p>
-          You can also select examples from the database and use AI to create activities, suggest related
-          metaphors, explain expressions, and explore possible origin/history notes.
-        </p>
-        <p>
-          Try searching <strong>dream</strong>, for example. You may retrieve many expressions that show how
-          a single concept can be figuratively elaborated in strikingly different directions: dreams appear
-          as vast or measurable entities, as objects that can be built upon, trapped, or destroyed, and as
-          goals that demand active pursuit.
-        </p>
-        <p>
-          You can also use the dropdown filters to explore metaphors by concept/domain, such as emotions,
-          love, life and loss, health and illness, games and sport, human relationships, and communication.
-        </p>
-      </div>
+<div class="about-box">
+  <h2>About This Resource</h2>
+  <p>
+    Welcome to a research-based open resource for teachers. This database contains <strong>authentic examples</strong> of figurative language — metaphors, similes, personification, hyperbole, and more — from picturebooks and juvenile fiction.
+  </p>
+  <p>
+    Search, filter, and explore for classroom discussions, worksheets, and activities. Click the <strong>Google</strong> and AI-powered <strong>Explain</strong> buttons next to any entry explore further and/or source the text or a read-aloud.
+  </p>
+  <p>
+    You can also select examples and use the <strong>AI Teacher Tools</strong> tab to instantly generate classroom activities, explanations, related metaphors, and more.
+  </p>
+  <p>
+    Try searching for <strong>dream</strong>. You’ll see how one concept can be expressed in many rich and different ways — dreams as vast landscapes to explore, fragile objects to protect, destinations worth chasing, or things that can be built, shattered, or lost.
+  </p>
+  <p>
+    Use the dropdown filters to explore figurative language by domain: emotions, love, life and loss, health and illness, games and sport, human relationships, communication, and others.
+  </p>
+  <p>
+    This database was developed using AI (GPT-4.1) to extract and analyze a large collection of picturebooks that we developed, supplemented with 'juvenile fiction' from the <em>Corpus of Contemporary American English (https://www.english-corpora.org/coca/)</em>.
+  </p>
+  <p>
+    <strong>Note:</strong> AI technology is not perfect! Each entry shows a confidence rating (5–7, where 7 is highest). Use the Google and Explain buttons to help verify and double-check borderline examples when needed.
+  </p>
+  <p>
+    The <strong>Domain</strong> labels (Source Domain/Target Domain) are designed to help find examples that share conceptual features. Figurative language often compares an abstract idea (the 'Target' or Topic) to something more concrete and familiar (the 'Source' or Vehicle). This helps writers express things like emotions, opinions, or complex ideas in a way readers can easily understand and everyday experiences. <strong>When I saw this database, I burst with joy. </strong> = Target (the abstract feeling): Communicating emotion of joy; Source (the concrete image): Physical movement/direction ("bursting").
+  </p>
+</div>
 
       <section class="gallery">
         <div><img src="https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg" alt="Stack of children's picturebooks"></div>
@@ -395,7 +409,7 @@
       <div class="controls">
         <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
         <button class="btn" onclick="filterTable()">🔍 Search</button>
-        <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
+        /<button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
         <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
         <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
         <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
@@ -407,14 +421,7 @@
 
 <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
 
-
-<select id="copyScope" class="btn-secondary">
-  <option value="filtered" selected>Copy all filtered rows</option>
-  <option value="page">Copy current page only</option>
-</select>
-
-<button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
-
+ 
       </div>
 
       <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
@@ -450,6 +457,9 @@
             <p style="margin:0;opacity:.95;">
               Quickly turn filtered figurative language examples into classroom-ready prompts, explanations, and activities.
             </p>
+            <p> You can add copied quotes from the main page using the buttons or copy and paste.  
+            </p>
+            <p> Generate, edit and copy the prompts: then select the AI model you want to use</p>
           </div>
         </div>
 
@@ -1023,8 +1033,8 @@ function buildGoogleQueryForRow(row) {
 
         if ([
           'Quotation from Source',
-          'Source Chain of Thought',
-          'Target Chain of Thought',
+          'Source- AI's Explanantion',
+          'Target-  AI's Explanantion',
           'AI Short Comment'
         ].includes(col)) {
           td.className = 'long-text';
@@ -1432,6 +1442,114 @@ Return:
     if (btn) btn.addEventListener('click', addQuoteTypeFromFilteredRows);
   });
 </script>
+<!-- Excel Multi-Cell Copy Feature -->
+<script>
+(() => {
+  if (window.__EXCEL_COPY_INIT__) return;
+  window.__EXCEL_COPY_INIT__ = true;
 
+  const css = `.db-table td.excel-selected { background: #dbeafe !important; } .db-table td.excel-anchor { outline: 2px solid #2563eb; outline-offset: -2px; } body.excel-dragging { user-select: none; -webkit-user-select: none; }`;
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  const state = { dragging: false, table: null, tbody: null, startRow: -1, startCol: -1, endRow: -1, endCol: -1 };
+
+  const CLEAN = (v) => String(v ?? "").replace(/\r?\n+/g, " ").replace(/\t/g, " ").trim();
+  const isEditableEl = (el) => !!el?.closest?.('input, textarea, select, [contenteditable="true"]');
+
+  function getDataCells(tr) {
+    return Array.from(tr.cells).filter(td => !td.querySelector(".row-actions"));
+  }
+
+  function clearSelections() {
+    document.querySelectorAll(".excel-selected, .excel-anchor").forEach(td => {
+      td.classList.remove("excel-selected", "excel-anchor");
+    });
+    state.dragging = false;
+    document.body.classList.remove("excel-dragging");
+  }
+
+  document.addEventListener("mousedown", (e) => {
+    if (e.button !== 0 || isEditableEl(e.target)) return;
+    const td = e.target.closest("table#dataTable tbody td");
+    if (!td) {
+      if (!e.target.closest("table#dataTable")) clearSelections();
+      return;
+    }
+    if (td.querySelector(".row-actions")) return;
+
+    clearSelections();
+    state.dragging = true;
+    state.table = td.closest('table');
+    state.tbody = td.closest('tbody');
+    const tr = td.closest('tr');
+    state.startRow = state.endRow = Array.prototype.indexOf.call(state.tbody.rows, tr);
+    state.startCol = state.endCol = getDataCells(tr).indexOf(td);
+
+    document.body.classList.add("excel-dragging");
+    td.classList.add("excel-selected", "excel-anchor");
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!state.dragging) return;
+    const td = e.target.closest("table#dataTable tbody td");
+    if (!td || td.querySelector(".row-actions") || td.closest('table') !== state.table) return;
+
+    const tr = td.closest('tr');
+    state.endRow = Array.prototype.indexOf.call(state.tbody.rows, tr);
+    state.endCol = getDataCells(tr).indexOf(td);
+
+    // Clear previous selection
+    state.table.querySelectorAll(".excel-selected").forEach(c => c.classList.remove("excel-selected"));
+
+    const r1 = Math.min(state.startRow, state.endRow);
+    const r2 = Math.max(state.startRow, state.endRow);
+    const c1 = Math.min(state.startCol, state.endCol);
+    const c2 = Math.max(state.startCol, state.endCol);
+
+    for (let r = r1; r <= r2; r++) {
+      const cells = getDataCells(state.tbody.rows[r]);
+      for (let c = c1; c <= c2; c++) {
+        if (cells[c]) cells[c].classList.add("excel-selected");
+      }
+    }
+  });
+
+  document.addEventListener("mouseup", () => {
+    state.dragging = false;
+    document.body.classList.remove("excel-dragging");
+  });
+
+  // Copy handler (Ctrl+C or Cmd+C)
+  document.addEventListener("copy", (e) => {
+    if (isEditableEl(document.activeElement) || !state.table) return;
+
+    const r1 = Math.min(state.startRow, state.endRow);
+    const r2 = Math.max(state.startRow, state.endRow);
+    const c1 = Math.min(state.startCol, state.endCol);
+    const c2 = Math.max(state.startCol, state.endCol);
+
+    const lines = [];
+    for (let r = r1; r <= r2; r++) {
+      const cells = getDataCells(state.tbody.rows[r]);
+      const rowOut = [];
+      for (let c = c1; c <= c2; c++) {
+        rowOut.push(CLEAN(cells[c]?.innerText || ''));
+      }
+      lines.push(rowOut.join("\t"));
+    }
+
+    if (lines.length) {
+      e.preventDefault();
+      e.clipboardData.setData("text/plain", lines.join("\n"));
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") clearSelections();
+  });
+})();
+</script>
 </body>
 </html>
