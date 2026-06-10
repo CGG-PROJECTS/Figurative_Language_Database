@@ -332,15 +332,16 @@
     }
     .modal textarea{ min-height: 120px; resize: vertical; }
     .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
-    /* Excel-like multi-cell selection */
-.db-table td, .db-table th { cursor: cell; }
-.db-table td { user-select: none; -webkit-user-select: none; }
-.db-table td.excel-selected { background: #dbeafe !important; }
-.db-table td.excel-anchor { outline: 2px solid #2563eb; outline-offset: -2px; }
-body.excel-dragging { user-select: none; -webkit-user-select: none; }
 
-/* Optional: highlight sparse selection */
-.db-table td.excel-sparse { background: #fde68a !important; }
+    /* Excel-like multi-cell selection */
+    .db-table td, .db-table th { cursor: cell; }
+    .db-table td { user-select: none; -webkit-user-select: none; }
+    .db-table td.excel-selected { background: #dbeafe !important; }
+    .db-table td.excel-anchor { outline: 2px solid #2563eb; outline-offset: -2px; }
+    body.excel-dragging { user-select: none; -webkit-user-select: none; }
+
+    /* Optional: highlight sparse selection */
+    .db-table td.excel-sparse { background: #fde68a !important; }
   </style>
 </head>
 <body>
@@ -357,33 +358,33 @@ body.excel-dragging { user-select: none; -webkit-user-select: none; }
 
     <!-- DATABASE TAB -->
     <section id="tab-database" class="tab-pane active">
-<div class="about-box">
-  <h2>About This Resource</h2>
-  <p>
-    Welcome to a research-based open resource for teachers. This database contains <strong>authentic examples</strong> of figurative language — metaphors, similes, personification, hyperbole, and more — from picturebooks and juvenile fiction.
-  </p>
-  <p>
-    Search, filter, and explore for classroom discussions, worksheets, and activities. Click the <strong>Google</strong> and AI-powered <strong>Explain</strong> buttons next to any entry explore further and/or source the text or a read-aloud.
-  </p>
-  <p>
-    You can also select examples and use the <strong>AI Teacher Tools</strong> tab to instantly generate classroom activities, explanations, related metaphors, and more.
-  </p>
-  <p>
-    Try searching for <strong>dream</strong>. You’ll see how one concept can be expressed in many rich and different ways — dreams as vast landscapes to explore, fragile objects to protect, destinations worth chasing, or things that can be built, shattered, or lost.
-  </p>
-  <p>
-    Use the dropdown filters to explore figurative language by domain: emotions, love, life and loss, health and illness, games and sport, human relationships, communication, and others.
-  </p>
-  <p>
-    This database was developed using AI (GPT-4.1) to extract and analyze a large collection of picturebooks that we developed, supplemented with 'juvenile fiction' from the <em>Corpus of Contemporary American English (https://www.english-corpora.org/coca/)</em>.
-  </p>
-  <p>
-    <strong>Note:</strong> AI technology is not perfect! Each entry shows a confidence rating (5–7, where 7 is highest). Use the Google and Explain buttons to help verify and double-check borderline examples when needed.
-  </p>
-  <p>
-    The <strong>Domain</strong> labels (Source Domain/Target Domain) are designed to help find examples that share conceptual features. Figurative language often compares an abstract idea (the 'Target' or Topic) to something more concrete and familiar (the 'Source' or Vehicle). This helps writers express things like emotions, opinions, or complex ideas in a way readers can easily understand and everyday experiences. <strong>When I saw this database, I burst with joy. </strong> = Target (the abstract feeling): Communicating emotion of joy; Source (the concrete image): Physical movement/direction ("bursting").
-  </p>
-</div>
+      <div class="about-box">
+        <h2>About This Resource</h2>
+        <p>
+          Welcome to a research-based open resource for teachers. This database contains <strong>authentic examples</strong> of figurative language — metaphors, similes, personification, hyperbole, and more — from picturebooks and juvenile fiction.
+        </p>
+        <p>
+          Search, filter, and explore for classroom discussions, worksheets, and activities. Click the <strong>Google</strong> and AI-powered <strong>Explain</strong> buttons next to any entry explore further and/or source the text or a read-aloud.
+        </p>
+        <p>
+          You can also select examples and use the <strong>AI Teacher Tools</strong> tab to instantly generate classroom activities, explanations, related metaphors, and more.
+        </p>
+        <p>
+          Try searching for <strong>dream</strong>. You’ll see how one concept can be expressed in many rich and different ways — dreams as vast landscapes to explore, fragile objects to protect, destinations worth chasing, or things that can be built, shattered, or lost.
+        </p>
+        <p>
+          Use the dropdown filters to explore figurative language by domain: emotions, love, life and loss, health and illness, games and sport, human relationships, communication, and others.
+        </p>
+        <p>
+          This database was developed using AI (GPT-4.1) to extract and analyze a large collection of picturebooks that we developed, supplemented with 'juvenile fiction' from the <em>Corpus of Contemporary American English (https://www.english-corpora.org/coca/)</em>.
+        </p>
+        <p>
+          <strong>Note:</strong> AI technology is not perfect! Each entry shows a confidence rating (5–7, where 7 is highest). Use the Google and Explain buttons to help verify and double-check borderline examples when needed.
+        </p>
+        <p>
+          The <strong>Domain</strong> labels (Source Domain/Target Domain) are designed to help find examples that share conceptual features. Figurative language often compares an abstract idea (the 'Target' or Topic) to something more concrete and familiar (the 'Source' or Vehicle). This helps writers express things like emotions, opinions, or complex ideas in a way readers can easily understand and everyday experiences. <strong>When I saw this database, I burst with joy. </strong> = Target (the abstract feeling): Communicating emotion of joy; Source (the concrete image): Physical movement/direction ("bursting").
+        </p>
+      </div>
 
       <section class="gallery">
         <div><img src="https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg" alt="Stack of children's picturebooks"></div>
@@ -409,26 +410,26 @@ body.excel-dragging { user-select: none; -webkit-user-select: none; }
       <div class="controls">
         <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
         <button class="btn" onclick="filterTable()">🔍 Search</button>
-        /<button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
+        <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
         <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
+        
+        <!-- UI CLEANUP: Removed duplicated select element -->
         <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
-        <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
 
-<select id="copyScope" class="btn-secondary">
-  <option value="filtered" selected>Copy all filtered rows</option>
-  <option value="page">Copy current page only</option>
-</select>
+        <select id="copyScope" class="btn-secondary">
+          <option value="filtered" selected>Copy all filtered rows</option>
+          <option value="page">Copy current page only</option>
+        </select>
 
-<button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
-
- 
+        <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
       </div>
 
       <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
 
       <div id="loading">Loading large database... (10–20 seconds first time)</div>
 
-      <table id="dataTable" style="display:none;">
+      <!-- UI CLEANUP: Added class "db-table" for copy selection features to apply visually -->
+      <table id="dataTable" class="db-table" style="display:none;">
         <thead>
           <tr id="headerRow"></tr>
           <tr class="filter-row" id="filterRow"></tr>
@@ -457,9 +458,8 @@ body.excel-dragging { user-select: none; -webkit-user-select: none; }
             <p style="margin:0;opacity:.95;">
               Quickly turn filtered figurative language examples into classroom-ready prompts, explanations, and activities.
             </p>
-            <p> You can add copied quotes from the main page using the buttons or copy and paste.  
-            </p>
-            <p> Generate, edit and copy the prompts: then select the AI model you want to use</p>
+            <p>You can add copied quotes from the main page using the buttons or copy and paste.</p>
+            <p>Generate, edit and copy the prompts: then select the AI model you want to use</p>
           </div>
         </div>
 
@@ -468,30 +468,26 @@ body.excel-dragging { user-select: none; -webkit-user-select: none; }
           Build classroom-ready prompts from filtered database rows. This does not change your data page.
         </p>
 
-<div class="ai-grid">
-  <div class="ai-field">
-    <label for="pbDbTake">How many examples from filtered database?</label>
-    <input id="pbDbTake" type="number" min="1" value="5" />
-  </div>
+        <div class="ai-grid">
+          <div class="ai-field">
+            <label for="pbDbTake">How many examples from filtered database?</label>
+            <input id="pbDbTake" type="number" min="1" value="5" />
+          </div>
 
-  <div class="ai-field">
-    <label for="pbDbMode">Pick</label>
-    <select id="pbDbMode">
-      <option value="random">Random</option>
-      <option value="first">First rows</option>
-    </select>
-  </div>
+          <div class="ai-field">
+            <label for="pbDbMode">Pick</label>
+            <select id="pbDbMode">
+              <option value="random">Random</option>
+              <option value="first">First rows</option>
+            </select>
+          </div>
 
-  <div class="ai-field" style="display:flex;align-items:flex-end;">
-<button id="pbAddQuoteTypeBtn" class="btn" type="button">
-  ⬇ Add Quotation + Type from Filtered Rows
-</button>
-
-  </div>
-</div>
-
-</div>
-
+          <div class="ai-field" style="display:flex;align-items:flex-end;">
+            <button id="pbAddQuoteTypeBtn" class="btn" type="button">
+              ⬇ Add Quotation + Type from Filtered Rows
+            </button>
+          </div>
+        </div>
 
         <div class="ai-grid">
           <div class="ai-field">
@@ -629,7 +625,6 @@ body.excel-dragging { user-select: none; -webkit-user-select: none; }
   const sortState = { column: null, asc: true };
   let currentExplainRow = null;
 
-  // These columns use dropdown filters
   const DROPDOWN_FILTER_COLUMNS = new Set([
     'book type',
     'figurative language type',
@@ -665,116 +660,69 @@ body.excel-dragging { user-select: none; -webkit-user-select: none; }
   function getCurrentFilteredDataset() {
     return Array.isArray(filteredData) ? filteredData : [];
   }
-function cleanJuvenileTitle(text) {
-  let s = normalizeSpaces(text || '');
 
-  // Turn underscores into spaces
-  s = s.replace(/_+/g, ' ');
-
-  // Remove everything from ".txt" onward (e.g., "_.txt read aloud")
-  s = s.split(/\.txt/i)[0];
-
-  // Also remove trailing "read aloud" if present without .txt
-  s = s.replace(/\bread\s*aloud\b.*$/i, '');
-
-  // Final cleanup
-  s = s.replace(/\s+/g, ' ').trim();
-
-  return s;
-}
-function populateCopyColumnSelect() {
-  const sel = document.getElementById('copyColumnSelect');
-  if (!sel) return;
-
-  sel.innerHTML = '';
-  const cols = Object.keys(fullData[0] || {});
-  cols.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    sel.appendChild(opt);
-  });
-}
-function populateCopyColumnSelect() {
-  const sel = document.getElementById('copyColumnSelect');
-  if (!sel) return;
-
-  sel.innerHTML = '';
-  const cols = Object.keys(fullData[0] || {});
-  cols.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    sel.appendChild(opt);
-  });
-}
-
-function copyColumnValues() {
-  const sel = document.getElementById('copyColumnSelect');
-  const scope = document.getElementById('copyScope')?.value || 'filtered';
-  if (!sel || !sel.value) {
-    alert('Choose a column first.');
-    return;
+  function cleanJuvenileTitle(text) {
+    let s = normalizeSpaces(text || '');
+    s = s.replace(/_+/g, ' ');
+    s = s.split(/\.txt/i)[0];
+    s = s.replace(/\bread\s*aloud\b.*$/i, '');
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
   }
 
-  const col = sel.value;
-  let rows = [];
+  // JS CLEANUP: Removed duplicated definitions of populateCopyColumnSelect() and copyColumnValues()
+  function populateCopyColumnSelect() {
+    const sel = document.getElementById('copyColumnSelect');
+    if (!sel) return;
 
-  if (scope === 'page') {
-    const start = (currentPage - 1) * rowsPerPage;
-    rows = filteredData.slice(start, start + rowsPerPage);
-  } else {
-    rows = filteredData;
+    sel.innerHTML = '';
+    const cols = Object.keys(fullData[0] || {});
+    cols.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      sel.appendChild(opt);
+    });
   }
 
-  const lines = rows.map(r => String(r[col] ?? '').trim());
-  const text = lines.join('\n'); // one cell per line (perfect for Excel/Sheets)
+  function copyColumnValues() {
+    const sel = document.getElementById('copyColumnSelect');
+    const scope = document.getElementById('copyScope')?.value || 'filtered';
+    if (!sel || !sel.value) {
+      alert('Choose a column first.');
+      return;
+    }
 
-  navigator.clipboard.writeText(text).then(() => {
-    alert(`Copied ${lines.length} cells from "${col}".`);
-  }).catch(() => {
-    alert('Copy failed. Please try again.');
-  });
-}
+    const col = sel.value;
+    let rows = [];
 
-function copyColumnValues() {
-  const sel = document.getElementById('copyColumnSelect');
-  const scope = document.getElementById('copyScope')?.value || 'filtered';
-  if (!sel || !sel.value) {
-    alert('Choose a column first.');
-    return;
+    if (scope === 'page') {
+      const start = (currentPage - 1) * rowsPerPage;
+      rows = filteredData.slice(start, start + rowsPerPage);
+    } else {
+      rows = filteredData;
+    }
+
+    const lines = rows.map(r => String(r[col] ?? '').trim());
+    const text = lines.join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert(`Copied ${lines.length} cells from "${col}".`);
+    }).catch(() => {
+      alert('Copy failed. Please try again.');
+    });
   }
 
-  const col = sel.value;
-  let rows = [];
-
-  if (scope === 'page') {
-    const start = (currentPage - 1) * rowsPerPage;
-    rows = filteredData.slice(start, start + rowsPerPage);
-  } else {
-    rows = filteredData;
+  function cleanTitleForSearch(text) {
+    let s = normalizeSpaces(text || '');
+    s = s.replace(/_+/g, ' ');                 
+    s = s.split(/\.txt/i)[0];                  
+    s = s.replace(/\bread\s*aloud\b.*$/i, ''); 
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
   }
 
-  const lines = rows.map(r => String(r[col] ?? '').trim());
-  const text = lines.join('\n'); // one cell per line (perfect for Excel/Sheets)
-
-  navigator.clipboard.writeText(text).then(() => {
-    alert(`Copied ${lines.length} cells from "${col}".`);
-  }).catch(() => {
-    alert('Copy failed. Please try again.');
-  });
-}
-
-function cleanTitleForSearch(text) {
-  let s = normalizeSpaces(text || '');
-  s = s.replace(/_+/g, ' ');                 // "_" -> space
-  s = s.split(/\.txt/i)[0];                  // remove .txt and anything after
-  s = s.replace(/\bread\s*aloud\b.*$/i, ''); // remove trailing "read aloud"
-  s = s.replace(/\s+/g, ' ').trim();
-  return s;
-}
-
-function buildGoogleQueryForRow(row) {
+  function buildGoogleQueryForRow(row) {
   const bookType = normalizeSpaces(
     getFirstNonEmpty(row, ['Book Type', 'book type'])
   ).toLowerCase();
@@ -909,8 +857,6 @@ function buildGoogleQueryForRow(row) {
           renderTable();
           populatePromptColumns();
           populateCopyColumnSelect();
-
-
         },
         error: (err) => {
           document.getElementById('loading').textContent = 'CSV parse error: ' + err.message;
@@ -1031,11 +977,12 @@ function buildGoogleQueryForRow(row) {
         const td = document.createElement('td');
         const val = row[col] ?? '';
 
+        // FIX: Replaced single quotes around 'AI's' with double quotes to prevent syntax breakdown
         if ([
-          'Quotation from Source',
-          'Source- AI's Explanantion',
-          'Target-  AI's Explanantion',
-          'AI Short Comment'
+          "Quotation from Source",
+          "Source- AI's Explanantion",
+          "Target-  AI's Explanantion",
+          "AI Short Comment"
         ].includes(col)) {
           td.className = 'long-text';
         }
@@ -1052,13 +999,11 @@ function buildGoogleQueryForRow(row) {
       const googleBtn = document.createElement('button');
       googleBtn.className = 'source-btn';
       googleBtn.textContent = '🔍 Google: Find the text';
-googleBtn.onclick = () => {
-  const q = buildGoogleQueryForRow(row);
-  if (!q) return;
-  window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
-};
-
-
+      googleBtn.onclick = () => {
+        const q = buildGoogleQueryForRow(row);
+        if (!q) return;
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+      };
 
       actionTd.appendChild(googleBtn);
 
@@ -1263,7 +1208,6 @@ Return:
     el.style.color = color;
   }
 
-  // safe to keep even if pbColumn no longer exists
   function populatePromptColumns() {
     const select = document.getElementById('pbColumn');
     if (!select) return;
@@ -1442,6 +1386,7 @@ Return:
     if (btn) btn.addEventListener('click', addQuoteTypeFromFilteredRows);
   });
 </script>
+
 <!-- Excel Multi-Cell Copy Feature -->
 <script>
 (() => {
@@ -1551,5 +1496,3 @@ Return:
   });
 })();
 </script>
-</body>
-</html>
