@@ -934,48 +934,50 @@
     filterRow.appendChild(document.createElement('td'));
   }
 
-   function filterTable() {
+     function filterTable() {
     const globalTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
 
     const colFilters = {};
     document.querySelectorAll('#filterRow [data-col]').forEach(el => {
-      const col = el.dataset.col;
+      let col = el.dataset.col;
       const rawVal = normalizeSpaces(el.value);
       if (!rawVal) return;
 
-      if (el.tagName === 'SELECT') {
-        colFilters[col] = { type: 'exact', value: rawVal.toLowerCase() };
-      } else {
-        colFilters[col] = { type: 'contains', value: rawVal.toLowerCase() };
+      // Try to find the real column name
+      if (!fullData[0] || !fullData[0][col]) {
+        const possible = Object.keys(fullData[0] || {}).find(k => 
+          k.toLowerCase().includes(col.toLowerCase())
+        );
+        if (possible) col = possible;
       }
+
+      colFilters[col] = { 
+        type: el.tagName === 'SELECT' ? 'exact' : 'contains', 
+        value: rawVal.toLowerCase() 
+      };
     });
 
     filteredData = fullData.filter(row => {
-      // Global search (top box)
       if (globalTerm) {
         const rowText = Object.values(row).map(v => String(v ?? '')).join(' ').toLowerCase();
         if (!rowText.includes(globalTerm)) return false;
       }
 
-      // Column-specific filters
       for (const col in colFilters) {
-        const cellValue = normalizeSpaces(row[col] || '').toLowerCase();
+        const cell = normalizeSpaces(row[col] ?? '').toLowerCase();
         const f = colFilters[col];
-
         if (f.type === 'exact') {
-          if (cellValue !== f.value) return false;
-        } else {
-          if (!cellValue.includes(f.value)) return false;
+          if (cell !== f.value) return false;
+        } else if (!cell.includes(f.value)) {
+          return false;
         }
       }
-
       return true;
     });
 
     currentPage = 1;
     renderTable();
   }
-
   function renderTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const pageData = filteredData.slice(start, start + rowsPerPage);
