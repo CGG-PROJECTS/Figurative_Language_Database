@@ -934,7 +934,7 @@
     filterRow.appendChild(document.createElement('td'));
   }
 
-  function filterTable() {
+   function filterTable() {
     const globalTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
 
     const colFilters = {};
@@ -951,19 +951,21 @@
     });
 
     filteredData = fullData.filter(row => {
+      // Global search (top box)
       if (globalTerm) {
         const rowText = Object.values(row).map(v => String(v ?? '')).join(' ').toLowerCase();
         if (!rowText.includes(globalTerm)) return false;
       }
 
+      // Column-specific filters
       for (const col in colFilters) {
-        const cell = normalizeSpaces(row[col]).toLowerCase();
+        const cellValue = normalizeSpaces(row[col] || '').toLowerCase();
         const f = colFilters[col];
 
         if (f.type === 'exact') {
-          if (cell !== f.value) return false;
+          if (cellValue !== f.value) return false;
         } else {
-          if (!cell.includes(f.value)) return false;
+          if (!cellValue.includes(f.value)) return false;
         }
       }
 
