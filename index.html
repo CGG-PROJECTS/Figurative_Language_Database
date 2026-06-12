@@ -426,15 +426,7 @@
         <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
         <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
         
-        <!-- UI CLEANUP: Removed duplicated select element -->
-        <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
-
-        <select id="copyScope" class="btn-secondary">
-          <option value="filtered" selected>Copy all filtered rows</option>
-          <option value="page">Copy current page only</option>
-        </select>
-
-        <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
+   
       </div>
 
       <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
@@ -869,7 +861,6 @@
           renderHeadersAndFilters();
           renderTable();
           populatePromptColumns();
-          populateCopyColumnSelect();
           populateGlobalSearchColumns();
 
         },
