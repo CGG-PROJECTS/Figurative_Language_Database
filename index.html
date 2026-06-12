@@ -419,6 +419,9 @@
 
       <div class="controls">
         <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
+        <select id="globalSearchColumn" class="btn-secondary">
+  <option value="__any">Anywhere</option>
+</select>
         <button class="btn" onclick="filterTable()">🔍 Search</button>
         <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
         <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
@@ -867,6 +870,8 @@
           renderTable();
           populatePromptColumns();
           populateCopyColumnSelect();
+          populateGlobalSearchColumns();
+
         },
         error: (err) => {
           document.getElementById('loading').textContent = 'CSV parse error: ' + err.message;
@@ -934,51 +939,94 @@
     filterRow.appendChild(document.createElement('td'));
   }
 
-     function filterTable() {
-    const globalTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
+  function filterTable() {
+  const globalTerm = normalizeSpaces(
+    document.getElementById('globalSearch').value
+  ).toLowerCase();
 
-    const colFilters = {};
-    document.querySelectorAll('#filterRow [data-col]').forEach(el => {
-      let col = el.dataset.col;
-      const rawVal = normalizeSpaces(el.value);
-      if (!rawVal) return;
+  const globalCol = document.getElementById('globalSearchColumn')?.value || '__any';
 
-      // Try to find the real column name
-      if (!fullData[0] || !fullData[0][col]) {
-        const possible = Object.keys(fullData[0] || {}).find(k => 
-          k.toLowerCase().includes(col.toLowerCase())
-        );
-        if (possible) col = possible;
-      }
+  const colFilters = {};
+  document.querySelectorAll('#filterRow [data-col]').forEach(el => {
+    const col = el.dataset.col;
+    const rawVal = normalizeSpaces(el.value);
+    if (!rawVal) return;
 
-      colFilters[col] = { 
-        type: el.tagName === 'SELECT' ? 'exact' : 'contains', 
-        value: rawVal.toLowerCase() 
-      };
-    });
+    colFilters[col] = {
+      type: el.tagName === 'SELECT' ? 'exact' : 'contains',
+      value: rawVal.toLowerCase()
+    };
+  });
 
-    filteredData = fullData.filter(row => {
-      if (globalTerm) {
+  filteredData = fullData.filter(row => {
+    // Global search (Anywhere OR one selected column)
+    if (globalTerm) {
+      if (globalCol === '__any') {
         const rowText = Object.values(row).map(v => String(v ?? '')).join(' ').toLowerCase();
         if (!rowText.includes(globalTerm)) return false;
+      } else {
+        const cell = normalizeSpaces(row[globalCol] ?? '').toLowerCase();
+        if (!cell.includes(globalTerm)) return false;
       }
+    }
 
-      for (const col in colFilters) {
-        const cell = normalizeSpaces(row[col] ?? '').toLowerCase();
-        const f = colFilters[col];
-        if (f.type === 'exact') {
-          if (cell !== f.value) return false;
-        } else if (!cell.includes(f.value)) {
-          return false;
-        }
+    // Column filters from filter row
+    for (const col in colFilters) {
+      const cell = normalizeSpaces(row[col] ?? '').toLowerCase();
+      const f = colFilters[col];
+
+      if (f.type === 'exact') {
+        if (cell !== f.value) return false;
+      } else {
+        if (!cell.includes(f.value)) return false;
       }
-      return true;
-    });
+    }
 
-    currentPage = 1;
-    renderTable();
-  }
-  function renderTable() {
+    return true;
+  });
+
+  currentPage = 1;
+  renderTable();
+}
+
+  
+   function populateGlobalSearchColumns() {
+  const sel = document.getElementById('globalSearchColumn');
+  if (!sel) return;
+
+  sel.innerHTML = '<option value="__any">Anywhere</option>';
+
+  const cols = Object.keys(fullData[0] || {});
+  cols.forEach(col => {
+    const opt = document.createElement('option');
+    opt.value = col;
+    opt.textContent = col;
+    sel.appendChild(opt);
+  });
+}
+
+function clearAllFilters() {
+  // Global search input
+  document.getElementById('globalSearch').value = '';
+
+  // Reset global search column dropdown to Anywhere
+  const gsc = document.getElementById('globalSearchColumn');
+  if (gsc) gsc.value = '__any';
+
+  // Reset filter row inputs/selects
+  document.querySelectorAll('#filterRow input[data-col]').forEach(i => i.value = '');
+  document.querySelectorAll('#filterRow select[data-col]').forEach(s => s.value = '');
+
+  filteredData = [...fullData];
+  currentPage = 1;
+  renderTable();
+}
+   
+   
+   
+   
+   
+   function renderTable() {
     const start = (currentPage - 1) * rowsPerPage;
     const pageData = filteredData.slice(start, start + rowsPerPage);
     const tbody = document.getElementById('tableBody');
@@ -1079,14 +1127,7 @@
     renderTable();
   }
 
-  function clearAllFilters() {
-    document.getElementById('globalSearch').value = '';
-    document.querySelectorAll('#filterRow input[data-col]').forEach(i => i.value = '');
-    document.querySelectorAll('#filterRow select[data-col]').forEach(s => s.value = '');
-    filteredData = [...fullData];
-    currentPage = 1;
-    renderTable();
-  }
+  
 
   function exportCSV() {
     if (!filteredData.length) return;
