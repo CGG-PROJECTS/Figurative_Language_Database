@@ -417,17 +417,29 @@
         <div><img src="https://thumbs.dreamstime.com/b/multicultural-kids-children-playing-reading-books-isolated-white-89339344.jpg" alt="Children reading"></div>
       </section>
 
-      <div class="controls">
-        <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
-        <select id="globalSearchColumn" class="btn-secondary">
-  <option value="__any">Anywhere</option>
-</select>
-        <button class="btn" onclick="filterTable()">🔍 Search</button>
-        <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
-        <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
-        
-   
-      </div>
+     <div class="controls">
+  <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
+
+  <!-- Search scope -->
+  <select id="globalSearchColumn" class="btn-secondary" style="min-width:200px;">
+    <option value="__any">Anywhere</option>
+  </select>
+
+  <button class="btn" onclick="filterTable()">🔍 Search</button>
+  <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
+  <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
+
+  <!-- Copy tools -->
+  <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
+
+  <select id="copyScope" class="btn-secondary">
+    <option value="filtered" selected>Copy all filtered rows</option>
+    <option value="page">Copy current page only</option>
+  </select>
+
+  <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
+</div>
+
 
       <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
 
@@ -862,6 +874,8 @@
           renderTable();
           populatePromptColumns();
           populateGlobalSearchColumns();
+          populateCopyColumnSelect();
+
 
         },
         error: (err) => {
