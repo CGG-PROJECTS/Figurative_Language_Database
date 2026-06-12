@@ -1090,7 +1090,7 @@ function clearAllFilters() {
     document.getElementById('rowCount').textContent = filteredData.length.toLocaleString();
     document.getElementById('currentPage').textContent = currentPage;
     document.getElementById('totalPages').textContent = totalPages;
-  }
+  } 
 
   function sortTable(column) {
     if (sortState.column === column) {
@@ -1099,7 +1099,7 @@ function clearAllFilters() {
       sortState.column = column;
       sortState.asc = true;
     }
-#copyScope { display: none; }
+
 
     filteredData.sort((a, b) => {
       const av = String(a[column] ?? '').toLowerCase();
