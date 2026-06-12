@@ -418,26 +418,23 @@
       </section>
 
      <div class="controls">
-  <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
+ <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
 
-  <!-- Search scope -->
-  <select id="globalSearchColumn" class="btn-secondary" style="min-width:200px;">
-    <option value="__any">Anywhere</option>
-  </select>
+<select id="globalSearchColumn" class="btn-secondary" style="min-width:220px;">
+  <option value="__any">Anywhere (Search)</option>
+</select>
 
-  <button class="btn" onclick="filterTable()">🔍 Search</button>
-  <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
-  <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
+<button class="btn" onclick="filterTable()">🔍 Search</button>
+<button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
+<button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
 
-  <!-- Copy tools -->
-  <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
+<select id="copyScope" class="btn-secondary">
+  <option value="filtered" selected>Copy all filtered rows</option>
+  <option value="page">Copy current page only</option>
+</select>
 
-  <select id="copyScope" class="btn-secondary">
-    <option value="filtered" selected>Copy all filtered rows</option>
-    <option value="page">Copy current page only</option>
-  </select>
+<button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
 
-  <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
 </div>
 
 
@@ -702,33 +699,36 @@
     });
   }
 
-  function copyColumnValues() {
-    const sel = document.getElementById('copyColumnSelect');
-    const scope = document.getElementById('copyScope')?.value || 'filtered';
-    if (!sel || !sel.value) {
-      alert('Choose a column first.');
-      return;
-    }
+ function copyColumnValues() {
+  const colSel = document.getElementById('globalSearchColumn');
+  const scope = document.getElementById('copyScope')?.value || 'filtered';
 
-    const col = sel.value;
-    let rows = [];
+  if (!colSel) return;
+  const col = colSel.value;
 
-    if (scope === 'page') {
-      const start = (currentPage - 1) * rowsPerPage;
-      rows = filteredData.slice(start, start + rowsPerPage);
-    } else {
-      rows = filteredData;
-    }
-
-    const lines = rows.map(r => String(r[col] ?? '').trim());
-    const text = lines.join('\n');
-
-    navigator.clipboard.writeText(text).then(() => {
-      alert(`Copied ${lines.length} cells from "${col}".`);
-    }).catch(() => {
-      alert('Copy failed. Please try again.');
-    });
+  if (!col || col === '__any') {
+    alert('Choose a specific column (not "Anywhere") before copying.');
+    return;
   }
+
+  let rows = [];
+  if (scope === 'page') {
+    const start = (currentPage - 1) * rowsPerPage;
+    rows = filteredData.slice(start, start + rowsPerPage);
+  } else {
+    rows = filteredData;
+  }
+
+  const lines = rows.map(r => String(r[col] ?? '').trim());
+  const text = lines.join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`Copied ${lines.length} cells from "${col}".`);
+  }).catch(() => {
+    alert('Copy failed. Please try again.');
+  });
+}
+
 
   function cleanTitleForSearch(text) {
     let s = normalizeSpaces(text || '');
@@ -874,7 +874,6 @@
           renderTable();
           populatePromptColumns();
           populateGlobalSearchColumns();
-          populateCopyColumnSelect();
 
 
         },
