@@ -83,7 +83,7 @@
     }
     .gallery-caption strong { color: #1d4ed8; display: block; margin-bottom: 4px; }
 
-    . {
+    .controls {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
@@ -428,7 +428,18 @@
   <button class="btn" onclick="filterTable()">🔍 Search</button>
   <button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
   <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
- 
+
+  <!-- Copy tools -->
+  <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
+
+  <select id="copyScope" class="btn-secondary">
+    <option value="filtered" selected>Copy all filtered rows</option>
+    <option value="page">Copy current page only</option>
+  </select>
+
+  <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
+</div>
+
 
       <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
 
@@ -677,8 +688,48 @@
   }
 
   // JS CLEANUP: Removed duplicated definitions of populateCopyColumnSelect() and copyColumnValues()
- 
- 
+  function populateCopyColumnSelect() {
+    const sel = document.getElementById('copyColumnSelect');
+    if (!sel) return;
+
+    sel.innerHTML = '';
+    const cols = Object.keys(fullData[0] || {});
+    cols.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+
+  function copyColumnValues() {
+    const sel = document.getElementById('copyColumnSelect');
+    const scope = document.getElementById('copyScope')?.value || 'filtered';
+    if (!sel || !sel.value) {
+      alert('Choose a column first.');
+      return;
+    }
+
+    const col = sel.value;
+    let rows = [];
+
+    if (scope === 'page') {
+      const start = (currentPage - 1) * rowsPerPage;
+      rows = filteredData.slice(start, start + rowsPerPage);
+    } else {
+      rows = filteredData;
+    }
+
+    const lines = rows.map(r => String(r[col] ?? '').trim());
+    const text = lines.join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert(`Copied ${lines.length} cells from "${col}".`);
+    }).catch(() => {
+      alert('Copy failed. Please try again.');
+    });
+  }
+
   function cleanTitleForSearch(text) {
     let s = normalizeSpaces(text || '');
     s = s.replace(/_+/g, ' ');                 
