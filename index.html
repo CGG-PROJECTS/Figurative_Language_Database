@@ -430,14 +430,14 @@
   <button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
 
   <!-- Copy tools -->
- 
+  <select id="copyColumnSelect" class="btn-secondary" style="min-width:220px;"></select>
 
   <select id="copyScope" class="btn-secondary">
     <option value="filtered" selected>Copy all filtered rows</option>
     <option value="page">Copy current page only</option>
   </select>
 
-  
+  <button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
 </div>
 
 
@@ -873,7 +873,8 @@
           renderHeadersAndFilters();
           renderTable();
           populatePromptColumns();
-          populateGlobalSearchColumns(); 
+          populateGlobalSearchColumns();
+          populateCopyColumnSelect();
 
 
         },
