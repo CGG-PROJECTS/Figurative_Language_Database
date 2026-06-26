@@ -3,1556 +3,671 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Picturebook Figurative Language Database</title>
+  <title>cpb-lex: Children's Picture Book Lexical Database Portal</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
-      color: #111827;
+      background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+      color: #0f172a;
       margin: 0;
       padding: 20px;
     }
 
     .container { max-width: 1900px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 20px; }
-    h1 { margin: 0 0 12px 0; font-size: 2.4rem; color: #1d4ed8; font-weight: 700; }
-    .tagline { font-size: 1.1rem; color: #4b5563; max-width: 900px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 25px; }
+    h1 { margin: 0 0 8px 0; font-size: 2.4rem; color: #0f766e; font-weight: 800; }
+    .tagline { font-size: 1.1rem; color: #475569; max-width: 1000px; margin: 0 auto; line-height: 1.5; }
 
+    /* Download Dashboard Styles */
+    .download-dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+    .download-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      border: 1px solid #e2e8f0;
+      border-top: 5px solid #0f766e;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .download-card.supplement { border-top-color: #0284c7; }
+    .download-card h3 { margin: 0 0 8px 0; font-size: 1.15rem; color: #1e293b; }
+    .download-card p { margin: 0 0 16px 0; font-size: 0.9rem; color: #64748b; line-height: 1.4; }
+    .download-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f766e;
+      color: white;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+      text-align: center;
+    }
+    .download-card.supplement .download-link { background: #0284c7; }
+    .download-link:hover { opacity: 0.95; }
+
+    /* Tab Group Layouts */
+    .tab-section-header {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin: 15px 0 8px 0;
+      font-weight: 700;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 4px;
+    }
+    .tabs-container {
+      background: #e2e8f0;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+    }
     .tabs {
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 14px 0 24px;
+      gap: 8px;
       flex-wrap: wrap;
     }
-
     .tab-btn {
       border: 1px solid #cbd5e1;
       background: #fff;
-      color: #1f2937;
-      padding: 10px 16px;
-      border-radius: 999px;
+      color: #475569;
+      padding: 10px 18px;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
     }
+    .tab-btn:hover { background: #f8fafc; color: #0f172a; }
     .tab-btn.active {
-      background: #1d4ed8;
+      background: #0f766e;
       color: #fff;
-      border-color: #1d4ed8;
+      border-color: #0f766e;
     }
-
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    .about-box {
-      background: white;
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin: 20px 0 30px 0;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-      border-left: 6px solid #1d4ed8;
-      line-height: 1.6;
+    .tab-btn.supp-tab.active {
+      background: #0284c7;
+      border-color: #0284c7;
     }
-
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin: 30px 0;
-    }
-
-    .gallery img {
-      width: 100%;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      object-fit: cover;
-      transition: transform 0.25s ease;
-    }
-
-    .gallery img:hover { transform: scale(1.03); }
-
-    .gallery-caption {
-      margin-top: 10px;
-      font-size: 0.95rem;
-      line-height: 1.4;
-    }
-    .gallery-caption strong { color: #1d4ed8; display: block; margin-bottom: 4px; }
 
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      margin: 20px 0 10px;
+      gap: 16px;
+      justify-content: space-between;
+      margin: 20px 0;
       align-items: center;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      border: 1px solid #e2e8f0;
     }
 
+    .search-group { display: flex; gap: 10px; flex-grow: 1; max-width: 600px; }
     #globalSearch {
-      width: min(500px, 92vw);
-      padding: 12px 14px;
+      flex-grow: 1;
+      padding: 12px;
       border-radius: 8px;
-      border: 1px solid #d1d5db;
+      border: 1px solid #cbd5e1;
       font-size: 1rem;
     }
 
     .btn {
-      background: #1d4ed8;
+      background: #0f766e;
       color: white;
-      padding: 12px 18px;
+      padding: 12px 22px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
+      transition: background 0.2s;
     }
-    .btn:hover { background: #1e40af; }
+    .btn:hover { background: #115e59; }
 
-    .btn-secondary{
-      background:#e5e7eb;
-      color:#111827;
-      border:none;
-      border-radius:8px;
-      padding:10px 14px;
-      cursor:pointer;
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 600;
     }
-    .btn-secondary:hover{ background:#d1d5db; }
+    .btn-secondary:hover { background: #e2e8f0; }
 
-    .meta {
-      text-align: center;
-      color: #374151;
-      margin: 8px 0 14px;
-      font-size: 0.95rem;
-    }
-
-    #loading {
-      text-align: center;
-      padding: 40px 10px;
-      font-size: 1.05rem;
-      color: #1d4ed8;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .meta-info { font-size: 1rem; color: #475569; font-weight: 600; }
+    .table-container {
+      overflow-x: auto;
       background: white;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      border-radius: 10px;
-      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      max-height: 68vh;
     }
 
-    th, td {
-      padding: 10px 9px;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-      vertical-align: top;
-      font-size: 0.92rem;
-    }
-
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #edf2f7; font-size: 0.88rem; }
     th {
-      background: #1e40af;
-      color: white;
+      background: #f8fafc;
+      color: #1e293b;
       cursor: pointer;
       position: sticky;
       top: 0;
       z-index: 10;
       white-space: nowrap;
+      user-select: none;
+      border-bottom: 2px solid #cbd5e1;
     }
+    th:hover { background: #f1f5f9; }
+    tr:hover td { background: #f0fdfa; }
 
-    tr:hover td { background: #f0f9ff; }
-
-    .long-text {
-      max-width: 450px;
-      white-space: pre-wrap;
-      line-height: 1.42;
-    }
-
-    .filter-row input,
-    .filter-row select {
+    .filter-row td { background: #f8fafc; padding: 8px; border-bottom: 2px solid #e2e8f0; }
+    .filter-input {
       width: 100%;
-      padding: 11px 12px;
-      height: 44px;
-      box-sizing: border-box;
+      padding: 6px 8px;
       border-radius: 6px;
       border: 1px solid #cbd5e1;
-      font-size: 14px;
-      background: white;
+      font-size: 0.8rem;
+      box-sizing: border-box;
     }
-
-    .source-btn {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 7px 12px;
+    .num-filter-container { display: flex; gap: 4px; }
+    .num-filter-container input {
+      width: 50%;
+      padding: 6px 4px;
       border-radius: 6px;
-      cursor: pointer;
-      white-space: nowrap;
+      border: 1px solid #cbd5e1;
+      font-size: 0.78rem;
+      box-sizing: border-box;
+      text-align: center;
     }
-    .source-btn:hover { background: #2563eb; }
-
-    .explain-btn{
-      background:#8b5cf6;
-      color:#fff;
-      border:none;
-      padding:7px 12px;
-      border-radius:6px;
-      cursor:pointer;
-      margin-left:6px;
-      white-space: nowrap;
-    }
-    .explain-btn:hover{ background:#7c3aed; }
 
     .pagination {
       display: flex;
       justify-content: center;
       gap: 12px;
       margin: 20px 0;
-      flex-wrap: wrap;
       align-items: center;
     }
-
     .pagination button, .pagination select {
-      padding: 8px 10px;
-      border-radius: 7px;
-      border: 1px solid #d1d5db;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
       background: white;
       cursor: pointer;
-    }
-    .pagination button:hover { background: #f3f4f6; }
-
-    /* AI tab */
-    .ai-wrap {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-      padding: 20px;
+      font-weight: 500;
     }
 
-    .ai-hero {
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 14px;
-      min-height: 180px;
-      background-image: url('https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg');
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 6px 18px rgba(0,0,0,.15);
-    }
-
-    .ai-hero::after{
-      content:'';
-      position:absolute; inset:0;
-      background: linear-gradient(to right, rgba(30,64,175,.75), rgba(139,92,246,.60));
-    }
-
-    .ai-hero-content{
-      position:relative;
-      z-index:2;
-      color:#fff;
-      padding:20px;
-      max-width: 760px;
-    }
-
-    .ai-hero h3{
-      margin:0 0 6px 0;
-      font-size:1.35rem;
-    }
-
-    .ai-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-      margin: 12px 0;
-    }
-
-    .ai-field label {
-      display: block;
-      font-size: 0.9rem;
-      color: #374151;
-      margin-bottom: 6px;
+    #loading-overlay {
+      text-align: center;
+      padding: 60px;
+      font-size: 1.3rem;
       font-weight: 600;
-    }
-
-    .ai-field input, .ai-field select, .ai-field textarea {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 0.95rem;
-      box-sizing: border-box;
-    }
-
-    .ai-field textarea { min-height: 130px; resize: vertical; }
-
-    .checks {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 8px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 12px;
-    }
-
-    .status {
-      margin-top: 8px;
-      font-size: 0.92rem;
-      color: #334155;
-    }
-
-    /* Explain modal */
-    .modal-backdrop{
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-    .modal{
-      width: min(680px, 92vw);
-      background: #fff;
+      color: #0f766e;
+      background: white;
       border-radius: 12px;
-      box-shadow: 0 20px 45px rgba(0,0,0,.25);
-      padding: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border: 1px solid #e2e8f0;
     }
-    .modal h3{ margin: 0 0 10px; color:#1e40af; }
-    .modal .row{ margin: 10px 0; }
-    .modal label{ font-weight: 600; display:block; margin-bottom: 6px; }
-    .modal select, .modal textarea{
-      width: 100%;
-      border:1px solid #cbd5e1;
-      border-radius:8px;
-      padding:10px;
-      box-sizing:border-box;
-    }
-    .modal textarea{ min-height: 120px; resize: vertical; }
-    .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
-
-    /* Excel-like multi-cell selection */
-    .db-table td, .db-table th { cursor: cell; }
-    .db-table td { user-select: none; -webkit-user-select: none; }
-    .db-table td.excel-selected { background: #dbeafe !important; }
-    .db-table td.excel-anchor { outline: 2px solid #2563eb; outline-offset: -2px; }
-    body.excel-dragging { user-select: none; -webkit-user-select: none; }
-
-    /* Optional: highlight sparse selection */
-    .db-table td.excel-sparse { background: #fde68a !important; }
   </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NVZSVZS7YX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-NVZSVZS7YX');
- 
-  </script>
 </head>
 <body>
+
   <div class="container">
     <header>
-      <h1>Picturebook Figurative Language Database</h1>
-      <div class="tagline">Research-based open resource for teachers</div>
+      <h1>cpb-lex Data Repository Portal</h1>
+      <div class="tagline">An open-access empirical interface exploring vocabulary diversity, token frequencies, and genre distributions across childhood print exposure models.</div>
     </header>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-database">Database</button>
-      <button class="tab-btn" data-tab="tab-ai">AI Teacher Tools</button>
+    <div class="download-dashboard">
+      <div class="download-card">
+        <div>
+          <h3>Download Core CPB-Lex Dataset</h3>
+          <p>Access the primary experimental data repository containing 25,585 types, Zipf norms, bigram metrics, and foundational document-term arrays.</p>
+        </div>
+        <a href="https://osf.io/e493x/overview?view_only=5b9c967584af4dd1b0e63e2463e3c333" target="_blank" class="download-link">Open Core Repository on OSF ↗</a>
+      </div>
+      <div class="download-card supplement">
+        <div>
+          <h3>Download Updated Data-in-Brief Supplement</h3>
+          <p>Access the expanded 3.49 million token matrix, encompassing 5,874 read-aloud transcripts with LLM-generated narrative and informational genre vectors.</p>
+        </div>
+        <a href="https://osf.io/53e9y/overview?view_only=c4aff93894c142ecbefe1f225373672c" target="_blank" class="download-link">Open Supplement Repository on OSF ↗</a>
+      </div>
     </div>
 
-    <!-- DATABASE TAB -->
-    <section id="tab-database" class="tab-pane active">
-      <div class="about-box">
-        <h2>About This Resource</h2>
-        <p>
-          Welcome to a research-based open resource for teachers. This database contains <strong>authentic examples</strong> of figurative language — metaphors, similes, personification, hyperbole, and more — from picturebooks and juvenile fiction.
-        </p>
-        <p>
-          Search, filter, and explore for classroom discussions, worksheets, and activities. Click the <strong>Google</strong> and AI-powered <strong>Explain</strong> buttons next to any entry explore further and/or source the text or a read-aloud.
-        </p>
-        <p>
-          You can also select examples and use the <strong>AI Teacher Tools</strong> tab to instantly generate classroom activities, explanations, related metaphors, and more.
-        </p>
-        <p>
-          Try searching for <strong>dream</strong>. You’ll see how one concept can be expressed in many rich and different ways — dreams as vast landscapes to explore, fragile objects to protect, destinations worth chasing, or things that can be built, shattered, or lost.
-        </p>
-        <p>
-          Use the dropdown filters to explore figurative language by domain: emotions, love, life and loss, health and illness, games and sport, human relationships, communication, and others.
-        </p>
-        <p>
-          This database was developed using AI (GPT-4.1) to extract and analyze a large collection of picturebooks that we developed, supplemented with 'juvenile fiction' from the <em>Corpus of Contemporary American English (https://www.english-corpora.org/coca/)</em>.
-        </p>
-        <p>
-          <strong>Note:</strong> AI technology is not perfect! Each entry shows a confidence rating (5–7, where 7 is highest). Use the Google and Explain buttons to help verify and double-check borderline examples when needed.
-        </p>
-        <p>
-          The <strong>Domain</strong> labels (Source Domain/Target Domain) are designed to help find examples that share conceptual features. Figurative language often compares an abstract idea (the 'Target' or Topic) to something more concrete and familiar (the 'Source' or Vehicle). This helps writers express things like emotions, opinions, or complex ideas in a way readers can easily understand and everyday experiences. <strong>When I saw this database, I burst with joy. </strong> = Target (the abstract feeling): Communicating emotion of joy; Source (the concrete image): Physical movement/direction ("bursting").
-        </p>
+    <div class="tabs-container">
+      <div class="tab-section-header">Core Database Matrices</div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('master')">Master Lexicon</button>
+        <button class="tab-btn" onclick="switchTab('lemmas')">Lemmas & POS</button>
+        <button class="tab-btn" onclick="switchTab('bigrams')">Bigrams Lexicon</button>
+        <button class="tab-btn" onclick="switchTab('pos-bigrams')">POS Bigrams</button>
+        <button class="tab-btn" onclick="switchTab('key')">Codebook (Key to Values)</button>
       </div>
 
-      <section class="gallery">
-        <div><img src="https://freerangestock.com/sample/67731/stack-of-childrens-books-and-coffee-cup.jpg" alt="Stack of children's picturebooks"></div>
-        <div>
-          <img src="https://thumbs.dreamstime.com/b/majestic-lion-rocky-peak-vibrant-sunset-clouds-majestic-lion-rocky-peak-vibrant-sunset-clouds-420984846.jpg" alt="Majestic lion">
-          <div class="gallery-caption"><strong>Simile</strong>as brave as a lion</div>
+      <div class="tab-section-header">Supplementary Dataset (Data-in-Brief Extended Pool)</div>
+      <div class="tabs">
+        <button class="tab-btn supp-tab" onclick="switchTab('supp-core')">Supp. Core Frequencies (Comparative)</button>
+        <button class="tab-btn supp-tab" onclick="switchTab('supp-all')">Supp. Frequency (All Book Types)</button>
+        <button class="tab-btn supp-tab" onclick="switchTab('supp-narrative')">Supp. Frequency (Narrative Subsets)</button>
+        <button class="tab-btn supp-tab" onclick="switchTab('supp-informational')">Supp. Frequency (Informational Subsets)</button>
+      </div>
+    </div>
+
+    <div id="loading-overlay">Initializing and unpacking compressed dataset pipelines...</div>
+
+    <main id="main-content" style="display:none;">
+      <div class="controls">
+        <div class="search-group">
+          <input type="text" id="globalSearch" placeholder="Global regex/substring text search string..." onkeyup="handleSearchInput(event)"/>
+          <button class="btn" onclick="applyCurrentFilters()">Search 🔍</button>
         </div>
         <div>
-          <img src="https://thumbs.dreamstime.com/b/ghostly-galleon-sails-under-brooding-moonlit-sky-turbulent-sea-majestic-tall-ship-dark-glow-full-moon-357371346.jpg" alt="Ghostly galleon">
-          <div class="gallery-caption"><strong>Metaphor</strong>The moon was a ghostly galleon</div>
+          <button class="btn-secondary" onclick="resetAllFilters()">Clear Filters 🧹</button>
+          <button class="btn" style="background:#0284c7;" onclick="exportFilteredDataset()">Export Filtered Subset ↓</button>
         </div>
-        <div>
-          <img src="https://thumbs.dreamstime.com/b/whispering-landscape-frozen-forest-winter-silence-ethereal-nature-concept-292248604.jpg" alt="Whispering wind through trees">
-          <div class="gallery-caption"><strong>Personification</strong>The wind whispered through the trees</div>
+        <div class="meta-info">
+          Matching Target Rows: <span id="record-count" style="color:#0f766e; font-weight:700;">0</span>
         </div>
-        <div>
-          <img src="https://www.literacyideas.com/wp-content/uploads/2021/08/Hyperbole-eat-a-horse-1.jpg" alt="Hyperbole expression">
-          <div class="gallery-caption"><strong>Hyperbole</strong>I'm so hungry I could eat a horse</div>
-        </div>
-        <div><img src="https://thumbs.dreamstime.com/b/multicultural-kids-children-playing-reading-books-isolated-white-89339344.jpg" alt="Children reading"></div>
-      </section>
+      </div>
 
-     <div class="controls">
- <input type="text" id="globalSearch" placeholder="Search anywhere (book, quote, domain...)" />
+      <div class="table-container">
+        <table id="dynamic-datatable">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
 
-<select id="globalSearchColumn" class="btn-secondary" style="min-width:220px;">
-  <option value="__any">Anywhere (Search)</option>
-</select>
-
-<button class="btn" onclick="filterTable()">🔍 Search</button>
-<button class="btn" onclick="clearAllFilters()">🧹 Clear Filters</button>
-<button class="btn" onclick="exportCSV()">↓ Export Filtered CSV</button>
-
-<select id="copyScope" class="btn-secondary">
-  <option value="filtered" selected>Copy all filtered rows</option>
-  <option value="page">Copy current page only</option>
-</select>
-
-<button class="btn-secondary" onclick="copyColumnValues()">📋 Copy Column Cells</button>
-
-</div>
-
-
-      <div class="meta">Showing <strong id="rowCount">0</strong> rows</div>
-
-      <div id="loading">Loading large database... (10–20 seconds first time)</div>
-
-      <!-- UI CLEANUP: Added class "db-table" for copy selection features to apply visually -->
-      <table id="dataTable" class="db-table" style="display:none;">
-        <thead>
-          <tr id="headerRow"></tr>
-          <tr class="filter-row" id="filterRow"></tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-
-      <div class="pagination" id="pagination" style="display:none;">
-        <button onclick="prevPage()">← Previous</button>
-        <span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
-        <button onclick="nextPage()">Next →</button>
-        <select id="rowsPerPage" onchange="changeRowsPerPage()">
+      <div class="pagination">
+        <button onclick="changePage(-1)">← Previous</button>
+        <span>Page <strong id="current-page-num">1</strong> of <strong id="total-pages-num">1</strong></span>
+        <button onclick="changePage(1)">Next →</button>
+        <select id="page-size-select" onchange="updatePageSize()">
           <option value="50">50 rows</option>
           <option value="100" selected>100 rows</option>
           <option value="250">250 rows</option>
+          <option value="500">500 rows</option>
         </select>
       </div>
-    </section>
-
-    <!-- AI TAB -->
-    <section id="tab-ai" class="tab-pane">
-      <div class="ai-wrap">
-        <div class="ai-hero">
-          <div class="ai-hero-content">
-            <h3>AI Teacher Prompt Studio</h3>
-            <p style="margin:0;opacity:.95;">
-              Quickly turn filtered figurative language examples into classroom-ready prompts, explanations, and activities.
-            </p>
-            <p>You can add copied quotes from the main page using the buttons or copy and paste.</p>
-            <p>Generate, edit and copy the prompts: then select the AI model you want to use</p>
-          </div>
-        </div>
-
-        <h2 style="margin-top:0;">Teacher Prompt Builder</h2>
-        <p style="color:#475569;margin-top:0;">
-          Build classroom-ready prompts from filtered database rows. This does not change your data page.
-        </p>
-
-        <div class="ai-grid">
-          <div class="ai-field">
-            <label for="pbDbTake">How many examples from filtered database?</label>
-            <input id="pbDbTake" type="number" min="1" value="5" />
-          </div>
-
-          <div class="ai-field">
-            <label for="pbDbMode">Pick</label>
-            <select id="pbDbMode">
-              <option value="random">Random</option>
-              <option value="first">First rows</option>
-            </select>
-          </div>
-
-          <div class="ai-field" style="display:flex;align-items:flex-end;">
-            <button id="pbAddQuoteTypeBtn" class="btn" type="button">
-              ⬇ Add Quotation + Type from Filtered Rows
-            </button>
-          </div>
-        </div>
-
-        <div class="ai-grid">
-          <div class="ai-field">
-            <label>Grade band</label>
-            <select id="pbGrade">
-              <option>K–1</option>
-              <option>2–3</option>
-              <option selected>4–6</option>
-              <option>7–8</option>
-              <option>9–12</option>
-            </select>
-          </div>
-
-          <div class="ai-field">
-            <label>Output length</label>
-            <select id="pbLength">
-              <option value="short">Short</option>
-              <option value="medium" selected>Medium</option>
-              <option value="long">Long</option>
-            </select>
-          </div>
-
-          <div class="ai-field">
-            <label>Text style</label>
-            <select id="pbTextType">
-              <option value="mixed" selected>Mixed</option>
-              <option value="fiction">Story / read-aloud style</option>
-              <option value="informational">Informational passage</option>
-              <option value="worksheet">Worksheet-only</option>
-            </select>
-          </div>
-
-          <div class="ai-field">
-            <label>How many NEW examples should AI generate?</label>
-            <input id="pbExampleCount" type="number" min="1" max="100" step="1" value="10" />
-          </div>
-        </div>
-
-        <div class="ai-field">
-          <label>Teacher focus (optional)</label>
-          <input id="pbFocus" placeholder="e.g., explain figurative meaning + compare literal meaning" />
-        </div>
-
-        <div style="margin:12px 0 6px;font-weight:600;color:#334155;">Include these teacher tasks</div>
-        <div class="checks">
-          <label><input type="checkbox" class="pbAct" value="Generate more examples" checked> Generate more examples</label>
-          <label><input type="checkbox" class="pbAct" value="Story with target examples" checked> Story with target examples</label>
-          <label><input type="checkbox" class="pbAct" value="Explain each expression clearly" checked> Explain each expression clearly</label>
-          <label><input type="checkbox" class="pbAct" value="Create worksheet + answer key" checked> Create worksheet + answer key</label>
-          <label><input type="checkbox" class="pbAct" value="Suggest related metaphors/similes"> Suggest related metaphors/similes</label>
-          <label><input type="checkbox" class="pbAct" value="Literal vs figurative sorting activity"> Literal vs figurative sorting activity</label>
-          <label><input type="checkbox" class="pbAct" value="Brief origin/history note when known"> Brief origin/history note when known</label>
-        </div>
-
-        <div class="ai-field" style="margin-top:14px;">
-          <label>Figurative examples input (paste one per line)</label>
-          <textarea id="pbInput" placeholder='Formats accepted:
-1) quote | type
-   Example: The moon was a ghostly galleon | Metaphor
-
-2) type: quote
-   Example: Simile: as brave as a lion
-
-3) quote only
-   Example: The wind whispered through the trees'></textarea>
-        </div>
-
-        <div class="controls" style="justify-content:flex-start;">
-          <button class="btn" onclick="generatePrompt()">✨ Generate Prompt</button>
-          <button class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
-          <button class="btn" onclick="clearPromptBuilder()">Clear Prompt Form</button>
-        </div>
-
-        <div class="ai-field">
-          <label>Generated prompt</label>
-          <textarea id="pbOutput" style="min-height:220px;"></textarea>
-        </div>
-
-        <div class="controls" style="justify-content:flex-start;">
-          <label for="pbProvider" style="font-weight:600;color:#334155;">Open in</label>
-          <select id="pbProvider">
-            <option value="chatgpt">ChatGPT</option>
-            <option value="gemini">Gemini</option>
-            <option value="claude">Claude</option>
-          </select>
-          <button class="btn" onclick="openPromptInLLM()">🚀 Open with Prompt</button>
-        </div>
-
-        <div class="status" id="pbStatus"></div>
-      </div>
-    </section>
+    </main>
   </div>
 
-  <!-- Explain Modal -->
-  <div id="explainModalBackdrop" class="modal-backdrop">
-    <div class="modal">
-      <h3>Explain Figurative Language Example</h3>
-
-      <div class="row">
-        <label for="explainTask">What should AI do?</label>
-        <select id="explainTask">
-          <option value="explain">Explain this example (student-friendly)</option>
-          <option value="history">Tell me the history/origin if known</option>
-          <option value="both" selected>Explain + history/origin</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <label for="explainProvider">Open in</label>
-        <select id="explainProvider">
-          <option value="chatgpt">ChatGPT</option>
-          <option value="gemini">Gemini</option>
-          <option value="claude">Claude</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <label for="explainPreview">Prompt preview (editable)</label>
-        <textarea id="explainPreview"></textarea>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeExplainModal()">Cancel</button>
-        <button class="btn-secondary" onclick="copyExplainPrompt()">📋 Copy Prompt</button>
-        <button class="btn" onclick="openExplainInAI()">Open AI Tool</button>
-      </div>
-    </div>
-  </div>
-
- <script>
-  let fullData = [];
-  let filteredData = [];
-  let currentPage = 1;
-  let rowsPerPage = 100;
-  const sortState = { column: null, asc: true };
-  let currentExplainRow = null;
-
-  const DROPDOWN_FILTER_COLUMNS = new Set([
-    'book type',
-    'figurative language type',
-    'source domain',
-    'target domain'
-  ]);
-
-  function isDropdownColumn(colName) {
-    return DROPDOWN_FILTER_COLUMNS.has(String(colName).toLowerCase().trim());
-  }
-
-  function normalizeSpaces(s) {
-    return String(s ?? '').replace(/\s+/g, ' ').trim();
-  }
-
-  function normalizeSpace(s) {
-    return String(s ?? '').replace(/\s+/g, ' ').trim();
-  }
-
-  function wordCount(s) {
-    const cleaned = normalizeSpaces(s);
-    return cleaned ? cleaned.split(' ').length : 0;
-  }
-
-  function getFirstNonEmpty(row, candidates) {
-    for (const c of candidates) {
-      const v = String(row?.[c] ?? '').trim();
-      if (v) return v;
-    }
-    return '';
-  }
-
-  function getCurrentFilteredDataset() {
-    return Array.isArray(filteredData) ? filteredData : [];
-  }
-
-  function cleanJuvenileTitle(text) {
-    let s = normalizeSpaces(text || '');
-    s = s.replace(/_+/g, ' ');
-    s = s.split(/\.txt/i)[0];
-    s = s.replace(/\bread\s*aloud\b.*$/i, '');
-    s = s.replace(/\s+/g, ' ').trim();
-    return s;
-  }
-
-  // JS CLEANUP: Removed duplicated definitions of populateCopyColumnSelect() and copyColumnValues()
-  function populateCopyColumnSelect() {
-    const sel = document.getElementById('copyColumnSelect');
-    if (!sel) return;
-
-    sel.innerHTML = '';
-    const cols = Object.keys(fullData[0] || {});
-    cols.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      sel.appendChild(opt);
-    });
-  }
-
- function copyColumnValues() {
-  const colSel = document.getElementById('globalSearchColumn');
-  const scope = document.getElementById('copyScope')?.value || 'filtered';
-
-  if (!colSel) return;
-  const col = colSel.value;
-
-  if (!col || col === '__any') {
-    alert('Choose a specific column (not "Anywhere") before copying.');
-    return;
-  }
-
-  let rows = [];
-  if (scope === 'page') {
-    const start = (currentPage - 1) * rowsPerPage;
-    rows = filteredData.slice(start, start + rowsPerPage);
-  } else {
-    rows = filteredData;
-  }
-
-  const lines = rows.map(r => String(r[col] ?? '').trim());
-  const text = lines.join('\n');
-
-  navigator.clipboard.writeText(text).then(() => {
-    alert(`Copied ${lines.length} cells from "${col}".`);
-  }).catch(() => {
-    alert('Copy failed. Please try again.');
-  });
-}
-
-
-  function cleanTitleForSearch(text) {
-    let s = normalizeSpaces(text || '');
-    s = s.replace(/_+/g, ' ');                 
-    s = s.split(/\.txt/i)[0];                  
-    s = s.replace(/\bread\s*aloud\b.*$/i, ''); 
-    s = s.replace(/\s+/g, ' ').trim();
-    return s;
-  }
-
-  function buildGoogleQueryForRow(row) {
-  const bookType = normalizeSpaces(
-    getFirstNonEmpty(row, ['Book Type', 'book type'])
-  ).toLowerCase();
-
-  const source = getFirstNonEmpty(row, ['Source Attribution', 'Book', 'Title']);
-  const quote  = getFirstNonEmpty(row, ['Quotation from Source', 'Quotation', 'Quote']);
-  const baseTitle = cleanTitleForSearch(source || quote);
-
-  if (!baseTitle) return '';
-
-  // Juvenile fiction -> "... book"
-  if (bookType.includes('juvenile fiction')) {
-    return `${baseTitle} book`;
-  }
-
-  // Picturebook(s) -> "... read aloud"
-  if (bookType.includes('picturebook')) {
-    return `${baseTitle} read aloud`;
-  }
-
-  // default for all other types
-  return `${baseTitle} read aloud`;
-}
-
-  function sampleRows(arr, n, mode = "random") {
-    if (!Array.isArray(arr) || !arr.length || n <= 0) return [];
-    if (n >= arr.length) return [...arr];
-    if (mode === "first") return arr.slice(0, n);
-
-    // random sample without replacement
-    const copy = [...arr];
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy.slice(0, n);
-  }
-
-  function addQuoteTypeFromFilteredRows() {
-    const allFiltered = getCurrentFilteredDataset();
-    if (!allFiltered.length) {
-      pbStatus("❌ No filtered rows found. Apply filters first.", "red");
-      return;
-    }
-
-    const take = Math.max(1, parseInt(document.getElementById("pbDbTake")?.value, 10) || 5);
-    const mode = document.getElementById("pbDbMode")?.value || "random";
-    const picked = sampleRows(allFiltered, take, mode);
-
-    const lines = [];
-    const seen = new Set();
-
-    for (const row of picked) {
-      const quote = normalizeSpace(getFirstNonEmpty(row, [
-        "Quotation from Source", "Quotation", "Quote"
-      ]));
-      const type = normalizeSpace(getFirstNonEmpty(row, [
-        "Figurative Language Type", "Type"
-      ])) || "Unknown";
-
-      if (!quote) continue;
-
-      const line = `${quote} | ${type}`;
-      const key = line.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      lines.push(line);
-    }
-
-    if (!lines.length) {
-      pbStatus("❌ Could not extract Quotation + Type from selected rows.", "red");
-      return;
-    }
-
-    const input = document.getElementById("pbInput");
-    if (input) input.value = lines.join("\n");
-    pbStatus(`✅ Added ${lines.length} example(s) from filtered rows.`, "#15803d");
-  }
-
-  function isBadDropdownValue(v) {
-    const cleaned = normalizeSpaces(v);
-    if (!cleaned) return true;
-    if (/^\d+$/.test(cleaned)) return true;
-    if (wordCount(cleaned) > 5) return true;
-    return false;
-  }
-
-  function getUniqueColumnValues(colName) {
-    return [...new Set(
-      fullData
-        .map(row => normalizeSpaces(row[colName]))
-        .filter(v => !isBadDropdownValue(v))
-    )].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-  }
-
-  function findColumnName(candidates) {
-    const cols = Object.keys(fullData[0] || {});
-    const map = new Map(cols.map(c => [c.toLowerCase().trim(), c]));
-    for (const cand of candidates) {
-      const hit = map.get(String(cand).toLowerCase().trim());
-      if (hit) return hit;
-    }
-    return null;
-  }
-
-  async function loadFromZip() {
-    try {
-      const response = await fetch('Figurative%20Language%20Database.zip');
-      if (!response.ok) throw new Error(`HTTP ${response.status}: could not fetch ZIP file`);
-
-      const zipBlob = await response.blob();
-      const zip = await JSZip.loadAsync(zipBlob);
-      const csvFile = Object.values(zip.files).find(f => !f.dir && f.name.toLowerCase().endsWith('.csv'));
-      if (!csvFile) throw new Error('No CSV file found inside ZIP');
-
-      const csvText = await csvFile.async("string");
-
-      Papa.parse(csvText, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          fullData = (results.data || []).filter(row =>
-            Object.values(row).some(v => String(v ?? '').trim() !== '')
-          );
-
-          filteredData = [...fullData];
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('dataTable').style.display = 'table';
-          document.getElementById('pagination').style.display = 'flex';
-
-          renderHeadersAndFilters();
-          renderTable();
-          populatePromptColumns();
-          populateGlobalSearchColumns();
-
-
-        },
-        error: (err) => {
-          document.getElementById('loading').textContent = 'CSV parse error: ' + err.message;
-        }
-      });
-    } catch (err) {
-      document.getElementById('loading').textContent =
-        'Error loading ZIP/CSV. Make sure "Figurative Language Database.zip" is in the same folder as this HTML file. Details: ' + err.message;
-    }
-  }
-
-  function renderHeadersAndFilters() {
-    const columns = Object.keys(fullData[0] || {});
-    const headerRow = document.getElementById('headerRow');
-    const filterRow = document.getElementById('filterRow');
-
-    headerRow.innerHTML = '';
-    filterRow.innerHTML = '';
-
-    columns.forEach(col => {
-      const th = document.createElement('th');
-      th.textContent = col;
-      th.title = 'Click to sort';
-      th.onclick = () => sortTable(col);
-      headerRow.appendChild(th);
-    });
-
-    const actionTh = document.createElement('th');
-    actionTh.textContent = 'Actions';
-    headerRow.appendChild(actionTh);
-
-    columns.forEach(col => {
-      const td = document.createElement('td');
-
-      if (isDropdownColumn(col)) {
-        const select = document.createElement('select');
-        select.dataset.col = col;
-        select.onchange = filterTable;
-
-        const allOption = document.createElement('option');
-        allOption.value = '';
-        allOption.textContent = 'All';
-        select.appendChild(allOption);
-
-        getUniqueColumnValues(col).forEach(v => {
-          const opt = document.createElement('option');
-          opt.value = v;
-          opt.textContent = v;
-          select.appendChild(opt);
-        });
-
-        td.appendChild(select);
-      } else {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'Search word/expression...';
-        input.dataset.col = col;
-        input.oninput = filterTable;
-        td.appendChild(input);
-      }
-
-      filterRow.appendChild(td);
-    });
-
-    filterRow.appendChild(document.createElement('td'));
-  }
-
-  function filterTable() {
-  const globalTerm = normalizeSpaces(
-    document.getElementById('globalSearch').value
-  ).toLowerCase();
-
-  const globalCol = document.getElementById('globalSearchColumn')?.value || '__any';
-
-  const colFilters = {};
-  document.querySelectorAll('#filterRow [data-col]').forEach(el => {
-    const col = el.dataset.col;
-    const rawVal = normalizeSpaces(el.value);
-    if (!rawVal) return;
-
-    colFilters[col] = {
-      type: el.tagName === 'SELECT' ? 'exact' : 'contains',
-      value: rawVal.toLowerCase()
+  <script>
+    // Unified Asset Routing Maps (Assuming standard GZIP deployment configurations)
+    const DATASET_FILE_ROUTING = {
+      // Core Matrix Files
+      master: 'CPB(Lexicon)__Master.csv.gz',
+      key: 'CPB(Lexicon)__Key to Values.csv.gz',
+      lemmas: 'CPB(Lexicon)__Lemmas and POS.csv.gz',
+      bigrams: 'CPB(Bigrams)__Bigrams.csv.gz',
+      'pos-bigrams': 'CPB(Bigrams)__POS Bigrams.csv.gz',
+      
+      // Supplementary Data-in-Brief Files
+      'supp-core': 'lexicon_frequencies.csv.gz',
+      'supp-all': 'freq_all.csv.gz',
+      'supp-narrative': 'freq_narrative.csv.gz',
+      'supp-informational': 'freq_information.csv.gz'
     };
-  });
 
-  filteredData = fullData.filter(row => {
-    // Global search (Anywhere OR one selected column)
-    if (globalTerm) {
-      if (globalCol === '__any') {
-        const rowText = Object.values(row).map(v => String(v ?? '')).join(' ').toLowerCase();
-        if (!rowText.includes(globalTerm)) return false;
-      } else {
-        const cell = normalizeSpaces(row[globalCol] ?? '').toLowerCase();
-        if (!cell.includes(globalTerm)) return false;
+    let datasetRegistry = {}; 
+    let datasetHeaders = {};   
+    let activeTab = 'master';
+    let runtimeFilteredData = [];
+    
+    let currentPage = 1;
+    let pageSize = 100;
+    
+    let explicitColumnFilters = []; 
+    let columnDataTypes = [];      
+    let systematicSortState = { index: null, ascending: true };
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await bootstrapDatabaseLoad();
+      } catch (err) {
+        document.getElementById('loading-overlay').innerHTML = 
+          `<span style="color:#ef4444;">Decompression Pipeline Interrupted: ${err.message}. Ensure relative archive path alignment.</span>`;
+        console.error(err);
       }
+    });
+
+    // Native Browser Decompression Engine
+    async function fetchAndUnpackGzipCSV(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP network error reading asset: ${url}`);
+      
+      const decompressionStream = new DecompressionStream('gzip');
+      const textDecoderStream = new TextDecoderStream();
+      
+      const readableStream = response.body
+        .pipeThrough(decompressionStream)
+        .pipeThrough(textDecoderStream);
+        
+      let accumulatedOutput = '';
+      const reader = readableStream.getReader();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        accumulatedOutput += value;
+      }
+      return accumulatedOutput;
     }
 
-    // Column filters from filter row
-    for (const col in colFilters) {
-      const cell = normalizeSpaces(row[col] ?? '').toLowerCase();
-      const f = colFilters[col];
-
-      if (f.type === 'exact') {
-        if (cell !== f.value) return false;
-      } else {
-        if (!cell.includes(f.value)) return false;
+    async function bootstrapDatabaseLoad() {
+      for (const [key, relativePath] of Object.entries(DATASET_FILE_ROUTING)) {
+        document.getElementById('loading-overlay').innerText = `Unpacking archive matrix stream [${key}]...`;
+        try {
+          const rawCsvString = await fetchAndUnpackGzipCSV(relativePath);
+          
+          // Parse using array matrices (header: false) to prevent duplicate header key collisions
+          const parsed = Papa.parse(rawCsvString.trim(), {
+            header: false,
+            skipEmptyLines: true,
+            dynamicTyping: true
+          });
+          
+          if (parsed.data && parsed.data.length > 0) {
+            datasetHeaders[key] = parsed.data[0]; // Capture display array strings directly
+            datasetRegistry[key] = parsed.data.slice(1); // Content arrays payload
+          } else {
+            datasetHeaders[key] = [];
+            datasetRegistry[key] = [];
+          }
+        } catch(e) {
+          console.warn(`Asset deployment bypassed or missing for key [${key}]: ${e.message}`);
+          datasetHeaders[key] = [];
+          datasetRegistry[key] = [];
+        }
       }
+      
+      document.getElementById('loading-overlay').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      initializeActiveViewEngine();
     }
 
-    return true;
-  });
+    function initializeActiveViewEngine() {
+      runtimeFilteredData = [...(datasetRegistry[activeTab] || [])];
+      explicitColumnFilters = [];
+      columnDataTypes = [];
+      systematicSortState = { index: null, ascending: true };
+      currentPage = 1;
+      
+      analyzeColumnMetadata();
+      generateDynamicHeaderRow();
+      applyDataTransformationFilters();
+    }
 
-  currentPage = 1;
-  renderTable();
-}
+    // Identifies data profiles via index-mapped vectors
+    function analyzeColumnMetadata() {
+      const headers = datasetHeaders[activeTab] || [];
+      const dataPool = datasetRegistry[activeTab] || [];
+      
+      headers.forEach((h, colIndex) => {
+        let isNumeric = false;
+        // Test type characteristics over a lookahead sampling window of the first 15 records
+        for (let i = 0; i < Math.min(dataPool.length, 15); i++) {
+          const val = dataPool[i][colIndex];
+          if (val !== null && val !== undefined && typeof val === 'number') {
+            isNumeric = true;
+            break;
+          }
+        }
+        columnDataTypes[colIndex] = isNumeric ? 'numeric' : 'text';
+        explicitColumnFilters[colIndex] = isNumeric ? { min: '', max: '' } : '';
+      });
+    }
 
-  
-   function populateGlobalSearchColumns() {
-  const sel = document.getElementById('globalSearchColumn');
-  if (!sel) return;
+    function generateDynamicHeaderRow() {
+      const headEl = document.getElementById('table-head');
+      headEl.innerHTML = '';
+      
+      const headers = datasetHeaders[activeTab] || [];
+      if (!headers.length) {
+        headEl.innerHTML = '<tr><th>Zero columns parsed inside active frame. Check archive source files.</th></tr>';
+        return;
+      }
 
-  sel.innerHTML = '<option value="__any">Anywhere</option>';
+      // Headers Sorting Action Layer
+      const sortRow = document.createElement('tr');
+      headers.forEach((headerName, index) => {
+        const th = document.createElement('th');
+        th.innerText = headerName || `Col ${index + 1}`;
+        th.onclick = () => triggerColumnSort(index);
+        sortRow.appendChild(th);
+      });
+      headEl.appendChild(sortRow);
 
-  const cols = Object.keys(fullData[0] || {});
-  cols.forEach(col => {
-    const opt = document.createElement('option');
-    opt.value = col;
-    opt.textContent = col;
-    sel.appendChild(opt);
-  });
-}
-
-function clearAllFilters() {
-  // Global search input
-  document.getElementById('globalSearch').value = '';
-
-  // Reset global search column dropdown to Anywhere
-  const gsc = document.getElementById('globalSearchColumn');
-  if (gsc) gsc.value = '__any';
-
-  // Reset filter row inputs/selects
-  document.querySelectorAll('#filterRow input[data-col]').forEach(i => i.value = '');
-  document.querySelectorAll('#filterRow select[data-col]').forEach(s => s.value = '');
-
-  filteredData = [...fullData];
-  currentPage = 1;
-  renderTable();
-}
-   
-   
-   
-   
-   
-   function renderTable() {
-    const start = (currentPage - 1) * rowsPerPage;
-    const pageData = filteredData.slice(start, start + rowsPerPage);
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
-
-    pageData.forEach(row => {
-      const tr = document.createElement('tr');
-
-      Object.keys(row).forEach(col => {
+      // Context-Aware High-Frequencies Parameter Filter Bar
+      const filterRow = document.createElement('tr');
+      filterRow.className = 'filter-row';
+      
+      headers.forEach((_, index) => {
         const td = document.createElement('td');
-        const val = row[col] ?? '';
+        
+        if (columnDataTypes[index] === 'numeric') {
+          const div = document.createElement('div');
+          div.className = 'num-filter-container';
+          
+          const minInput = document.createElement('input');
+          minInput.type = 'number';
+          minInput.step = 'any';
+          minInput.placeholder = 'Min';
+          minInput.value = explicitColumnFilters[index].min;
+          minInput.oninput = (e) => {
+            explicitColumnFilters[index].min = e.target.value;
+            applyDataTransformationFilters();
+          };
+          
+          const maxInput = document.createElement('input');
+          maxInput.type = 'number';
+          maxInput.step = 'any';
+          maxInput.placeholder = 'Max';
+          maxInput.value = explicitColumnFilters[index].max;
+          maxInput.oninput = (e) => {
+            explicitColumnFilters[index].max = e.target.value;
+            applyDataTransformationFilters();
+          };
+          
+          div.appendChild(minInput);
+          div.appendChild(maxInput);
+          td.appendChild(div);
+        } else {
+          const input = document.createElement('input');
+          input.className = 'filter-input';
+          input.type = 'text';
+          input.placeholder = 'Contains...';
+          input.value = explicitColumnFilters[index];
+          input.onkeyup = (e) => {
+            explicitColumnFilters[index] = e.target.value;
+            applyDataTransformationFilters();
+          };
+          td.appendChild(input);
+        }
+        
+        filterRow.appendChild(td);
+      });
+      headEl.appendChild(filterRow);
+    }
 
-        // FIX: Replaced single quotes around 'AI's' with double quotes to prevent syntax breakdown
-        if ([
-          "Quotation from Source",
-          "Source- AI's Explanantion",
-          "Target-  AI's Explanantion",
-          "AI Short Comment"
-        ].includes(col)) {
-          td.className = 'long-text';
+    function applyDataTransformationFilters() {
+      const baselineDataset = datasetRegistry[activeTab] || [];
+      const globalSearchVal = document.getElementById('globalSearch').value.trim().toLowerCase();
+
+      runtimeFilteredData = baselineDataset.filter(row => {
+        // Evaluate dynamic column vector array maps
+        for (let i = 0; i < row.length; i++) {
+          const type = columnDataTypes[i];
+          const val = row[i];
+          
+          if (type === 'numeric') {
+            const minBound = explicitColumnFilters[i]?.min;
+            const maxBound = explicitColumnFilters[i]?.max;
+            
+            if (minBound !== '' && minBound !== undefined && (val === null || val === undefined || val < parseFloat(minBound))) {
+              return false;
+            }
+            if (maxBound !== '' && maxBound !== undefined && (val === null || val === undefined || val > parseFloat(maxBound))) {
+              return false;
+            }
+          } else {
+            const filterText = explicitColumnFilters[i];
+            if (filterText) {
+              const targetStringValue = String(val ?? '').toLowerCase();
+              if (!targetStringValue.includes(filterText.toLowerCase())) return false;
+            }
+          }
         }
 
-        td.textContent = val;
-        tr.appendChild(td);
+        // Evaluate Global string pattern match expressions
+        if (globalSearchVal) {
+          const matchedAnywhere = row.some(val => 
+            String(val ?? '').toLowerCase().includes(globalSearchVal)
+          );
+          if (!matchedAnywhere) return false;
+        }
+
+        return true;
       });
 
-      const actionTd = document.createElement('td');
+      // Preserve systematic alphanumeric column array sorting transformations
+      if (systematicSortState.index !== null) {
+        const idx = systematicSortState.index;
+        const ascModifier = systematicSortState.ascending ? 1 : -1;
+        runtimeFilteredData.sort((a, b) => {
+          let valA = a[idx];
+          let valB = b[idx];
+          if (valA === null || valA === undefined) return 1;
+          if (valB === null || valB === undefined) return -1;
+          if (typeof valA === 'string') {
+            return valA.localeCompare(valB) * ascModifier;
+          }
+          return (valA - valB) * ascModifier;
+        });
+      }
 
-      const source = String(row['Source Attribution'] ?? '').trim();
-      const quote = String(row['Quotation from Source'] ?? '').trim();
+      document.getElementById('record-count').innerText = runtimeFilteredData.length.toLocaleString();
+      currentPage = 1;
+      renderPaginatedViewFrame();
+    }
 
-      const googleBtn = document.createElement('button');
-      googleBtn.className = 'source-btn';
-      googleBtn.textContent = '🔍 Google: Find the text';
-      googleBtn.onclick = () => {
-        const q = buildGoogleQueryForRow(row);
-        if (!q) return;
-        window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+    function renderPaginatedViewFrame() {
+      const bodyEl = document.getElementById('table-body');
+      bodyEl.innerHTML = '';
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, runtimeFilteredData.length);
+      const elementsSlice = runtimeFilteredData.slice(startIndex, endIndex);
+
+      const totalPages = Math.ceil(runtimeFilteredData.length / pageSize) || 1;
+      document.getElementById('current-page-num').innerText = currentPage;
+      document.getElementById('total-pages-num').innerText = totalPages;
+
+      if (elementsSlice.length === 0) {
+        bodyEl.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:40px; color:#64748b; font-weight:500;">Zero records matched your parameter configurations.</td></tr>';
+        return;
+      }
+
+      elementsSlice.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(val => {
+          const td = document.createElement('td');
+          if (typeof val === 'number' && !Number.isInteger(val)) {
+            td.innerText = val.toFixed(4); // Keep float UI clean and stable
+          } else {
+            td.innerText = val ?? '';
+          }
+          tr.appendChild(td);
+        });
+        bodyEl.appendChild(tr);
+      });
+    }
+
+    function triggerColumnSort(columnIndex) {
+      if (systematicSortState.index === columnIndex) {
+        systematicSortState.ascending = !systematicSortState.ascending;
+      } else {
+        systematicSortState.index = columnIndex;
+        systematicSortState.ascending = true;
+      }
+      applyDataTransformationFilters();
+    }
+
+    function handleSearchInput(e) {
+      if (e.key === 'Enter') applyCurrentFilters();
+    }
+
+    function applyCurrentFilters() {
+      applyDataTransformationFilters();
+    }
+
+    function resetAllFilters() {
+      document.getElementById('globalSearch').value = '';
+      analyzeColumnMetadata(); 
+      generateDynamicHeaderRow();
+      applyDataTransformationFilters();
+    }
+
+    function changePage(direction) {
+      const totalPages = Math.ceil(runtimeFilteredData.length / pageSize) || 1;
+      const destinationPage = currentPage + direction;
+      if (destinationPage >= 1 && destinationPage <= totalPages) {
+        currentPage = destinationPage;
+        renderPaginatedViewFrame();
+      }
+    }
+
+    function updatePageSize() {
+      pageSize = parseInt(document.getElementById('page-size-select').value, 10);
+      currentPage = 1;
+      renderPaginatedViewFrame();
+    }
+
+    function switchTab(tabKey) {
+      activeTab = tabKey;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      // Select exact DOM button objects via dynamic indexing configurations
+      const indexMap = { 
+        'master': 0, 'lemmas': 1, 'bigrams': 2, 'pos-bigrams': 3, 'key': 4,
+        'supp-core': 5, 'supp-all': 6, 'supp-narrative': 7, 'supp-informational': 8
       };
-
-      actionTd.appendChild(googleBtn);
-
-      const explainBtn = document.createElement('button');
-      explainBtn.className = 'explain-btn';
-      explainBtn.textContent = '✨ Explain the example';
-      explainBtn.onclick = () => showExplainModal(row);
-      actionTd.appendChild(explainBtn);
-
-      tr.appendChild(actionTd);
-      tbody.appendChild(tr);
-    });
-
-    const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
-    if (currentPage > totalPages) currentPage = totalPages;
-
-    document.getElementById('rowCount').textContent = filteredData.length.toLocaleString();
-    document.getElementById('currentPage').textContent = currentPage;
-    document.getElementById('totalPages').textContent = totalPages;
-  } 
-
-  function sortTable(column) {
-    if (sortState.column === column) {
-      sortState.asc = !sortState.asc;
-    } else {
-      sortState.column = column;
-      sortState.asc = true;
+      document.querySelectorAll('.tab-btn')[indexMap[tabKey]].classList.add('active');
+      
+      initializeActiveViewEngine();
     }
 
-
-    filteredData.sort((a, b) => {
-      const av = String(a[column] ?? '').toLowerCase();
-      const bv = String(b[column] ?? '').toLowerCase();
-      const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
-      return sortState.asc ? cmp : -cmp;
-    });
-
-    currentPage = 1;
-    renderTable();
-  }
-
-  function prevPage() {
-    if (currentPage > 1) {
-      currentPage--;
-      renderTable();
-    }
-  }
-
-  function nextPage() {
-    const maxPage = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
-    if (currentPage < maxPage) {
-      currentPage++;
-      renderTable();
-    }
-  }
-
-  function changeRowsPerPage() {
-    rowsPerPage = parseInt(document.getElementById('rowsPerPage').value, 10) || 100;
-    currentPage = 1;
-    renderTable();
-  }
-
-  
-
-  function exportCSV() {
-    if (!filteredData.length) return;
-
-    const headers = Object.keys(filteredData[0]);
-    let csv = headers.join(',') + '\n';
-
-    filteredData.forEach(row => {
-      const values = headers.map(h => `"${String(row[h] ?? '').replace(/"/g, '""')}"`);
-      csv += values.join(',') + '\n';
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'figurative_language_filtered.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  document.getElementById('globalSearch').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') filterTable();
-  });
-
-  // Tabs
-  function initTabs() {
-    const buttons = document.querySelectorAll('.tab-btn');
-    const panes = document.querySelectorAll('.tab-pane');
-
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        buttons.forEach(b => b.classList.remove('active'));
-        panes.forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).classList.add('active');
-      });
-    });
-  }
-
-  // ===== Explain Modal =====
-  function buildExplainPrompt(row, task = "both") {
-    const quote = getFirstNonEmpty(row, ["Quotation from Source", "Quotation", "Quote"]);
-    const figType = getFirstNonEmpty(row, ["Figurative Language Type", "Type"]);
-    const sourceDomain = getFirstNonEmpty(row, ["Source Domain"]);
-    const targetDomain = getFirstNonEmpty(row, ["Target Domain"]);
-    const sourceAttr = getFirstNonEmpty(row, ["Source Attribution", "Book", "Title"]);
-
-    let instruction = "";
-    if (task === "explain") {
-      instruction = "Explain this figurative language example clearly for teachers and students.";
-    } else if (task === "history") {
-      instruction = "If known, explain the origin/history of this expression. If uncertain, say so clearly and avoid guessing.";
-    } else {
-      instruction = "1) Explain this figurative language example clearly. 2) Provide origin/history if known; if uncertain, say so clearly.";
-    }
-
-    return `You are a literacy expert supporting teachers.
-
-${instruction}
-
-Example details:
-- Figurative language type: ${figType || "(not provided)"}
-- Quotation: ${quote || "(not provided)"}
-- Source domain: ${sourceDomain || "(not provided)"}
-- Target domain: ${targetDomain || "(not provided)"}
-- Source attribution: ${sourceAttr || "(not provided)"}
-
-Return:
-- Student-friendly explanation
-- Literal vs figurative meaning
-- Why this example is effective
-- (If requested) history/origin with confidence note
-- 2 quick classroom discussion questions`;
-  }
-
-  function showExplainModal(row) {
-    currentExplainRow = row;
-    const task = document.getElementById("explainTask").value;
-    document.getElementById("explainPreview").value = buildExplainPrompt(row, task);
-    document.getElementById("explainModalBackdrop").style.display = "flex";
-  }
-
-  function closeExplainModal() {
-    document.getElementById("explainModalBackdrop").style.display = "none";
-  }
-
-  function copyExplainPrompt() {
-    const prompt = document.getElementById("explainPreview").value.trim();
-    if (!prompt) {
-      alert("No prompt to copy yet.");
-      return;
-    }
-
-    navigator.clipboard.writeText(prompt).then(() => {
-      alert("Prompt copied to clipboard.");
-    }).catch(() => {
-      alert("Copy failed. Please copy manually.");
-    });
-  }
-
-  document.addEventListener("change", (e) => {
-    if (e.target && e.target.id === "explainTask" && currentExplainRow) {
-      document.getElementById("explainPreview").value =
-        buildExplainPrompt(currentExplainRow, e.target.value);
-    }
-  });
-
-  function openExplainInAI() {
-    const provider = document.getElementById("explainProvider").value;
-    const prompt = document.getElementById("explainPreview").value.trim();
-    if (!prompt) return;
-
-    const encoded = encodeURIComponent(prompt);
-    let url = "https://chatgpt.com/?q=" + encoded;
-    if (provider === "gemini") url = "https://gemini.google.com/app?prompt=" + encoded;
-    if (provider === "claude") url = "https://claude.ai/new";
-
-    const w = window.open(url, "_blank");
-    if (!w) {
-      alert("Popup blocked. Please allow popups and try again.");
-      return;
-    }
-
-    navigator.clipboard.writeText(prompt).catch(() => {});
-    closeExplainModal();
-  }
-
-  // ===== Prompt Builder =====
-  function pbStatus(msg, color = '#334155') {
-    const el = document.getElementById('pbStatus');
-    el.textContent = msg;
-    el.style.color = color;
-  }
-
-  function populatePromptColumns() {
-    const select = document.getElementById('pbColumn');
-    if (!select) return;
-    select.innerHTML = '';
-
-    const cols = Object.keys(fullData[0] || {});
-    if (!cols.length) return;
-
-    const preferred = [
-      'Quotation from Source',
-      'Figurative Language Type',
-      'Figurative Expression',
-      'Source Domain',
-      'Target Domain',
-      'Source Attribution'
-    ];
-
-    const ordered = [
-      ...preferred.filter(c => cols.includes(c)),
-      ...cols.filter(c => !preferred.includes(c))
-    ];
-
-    ordered.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      select.appendChild(opt);
-    });
-  }
-
-  function parseFigurativeInput(raw) {
-    const lines = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-
-    return lines.map(line => {
-      if (line.includes('|')) {
-        const [quote, type] = line.split('|').map(s => s.trim());
-        return { quote: quote || '', type: type || 'Unknown' };
+    function exportFilteredDataset() {
+      if (!runtimeFilteredData.length) {
+        alert("Action canceled: Filtered workspace contains no structural text payloads.");
+        return;
       }
-
-      if (line.includes(':')) {
-        const [left, ...rest] = line.split(':');
-        const maybeType = left.trim();
-        const quote = rest.join(':').trim();
-        if (quote) return { quote, type: maybeType || 'Unknown' };
-      }
-
-      return { quote: line, type: 'Unknown' };
-    }).filter(x => x.quote);
-  }
-
-  function buildPromptText(items, cfg) {
-    const lenMap = {
-      short: "150–250 words per text",
-      medium: "250–450 words per text",
-      long: "450–700 words per text"
-    };
-
-    let prompt = `You are an expert literacy teacher and curriculum writer specializing in figurative language instruction.\n\n`;
-
-    prompt += `INPUT FIGURATIVE EXPRESSIONS:\n`;
-    items.forEach((it, i) => {
-      prompt += `${i + 1}. Quotation: "${it.quote}" | Type: ${it.type}\n`;
-    });
-
-    prompt += `\nSETTINGS:\n`;
-    prompt += `- Grade band: ${cfg.grade}\n`;
-    prompt += `- Output length: ${lenMap[cfg.length] || lenMap.medium}\n`;
-    prompt += `- Text style: ${cfg.textType}\n`;
-    prompt += `- Teacher focus: ${cfg.focus || "Figurative meaning, literal comparison, and classroom use"}\n`;
-    prompt += `- Number of NEW examples to generate: ${cfg.exampleCount}\n\n`;
-
-    prompt += `REQUIRED OUTPUT:\n`;
-    prompt += `1) Explain each input expression in student-friendly language.\n`;
-    prompt += `2) For each: include literal vs figurative meaning.\n`;
-    prompt += `3) Generate exactly ${cfg.exampleCount} NEW figurative language examples aligned to the same themes/types.\n`;
-    prompt += `4) Keep all language classroom-ready and age-appropriate.\n`;
-
-    if (cfg.activities.length) {
-      prompt += `5) Include these teacher-requested tasks:\n`;
-      cfg.activities.forEach((a, i) => {
-        prompt += `   ${i + 1}. ${a}\n`;
-      });
+      // Re-stitch dynamic custom data header arrays onto CSV compilation rows
+      const combinedOutputMatrix = [datasetHeaders[activeTab], ...runtimeFilteredData];
+      const csvContent = Papa.unparse(combinedOutputMatrix);
+      const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = URL.createObjectURL(dataBlob);
+      const proxyLink = document.createElement('a');
+      proxyLink.href = downloadUrl;
+      proxyLink.setAttribute('download', `cpb_lex_${activeTab}_filtered.csv`);
+      document.body.appendChild(proxyLink);
+      proxyLink.click();
+      document.body.removeChild(proxyLink);
     }
-
-    prompt += `\nFormatting requirements:\n`;
-    prompt += `- Use clear section headings\n`;
-    prompt += `- Include printable-friendly activity structure\n`;
-    prompt += `- Add an answer key when worksheet tasks are included\n`;
-
-    return prompt;
-  }
-
-  function generatePrompt() {
-    const raw = document.getElementById('pbInput').value.trim();
-    if (!raw) {
-      pbStatus('❌ Please add figurative expressions first.', 'red');
-      return;
-    }
-
-    const items = parseFigurativeInput(raw);
-    if (!items.length) {
-      pbStatus('❌ Could not parse input. Use one example per line.', 'red');
-      return;
-    }
-
-    const activities = Array.from(document.querySelectorAll('.pbAct:checked')).map(el => el.value);
-
-    const cfg = {
-      grade: document.getElementById('pbGrade').value,
-      length: document.getElementById('pbLength').value,
-      textType: document.getElementById('pbTextType').value,
-      focus: document.getElementById('pbFocus').value.trim(),
-      exampleCount: parseInt(document.getElementById('pbExampleCount').value, 10) || 10,
-      activities
-    };
-
-    document.getElementById('pbOutput').value = buildPromptText(items, cfg);
-    pbStatus(`✅ Prompt ready (${items.length} source items, ${cfg.exampleCount} requested new examples).`, '#15803d');
-  }
-
-  function copyPrompt() {
-    const out = document.getElementById('pbOutput').value.trim();
-    if (!out) {
-      pbStatus('❌ Generate a prompt first.', 'red');
-      return;
-    }
-
-    navigator.clipboard.writeText(out).then(() => {
-      pbStatus('✅ Prompt copied.', '#15803d');
-    }).catch(() => {
-      pbStatus('❌ Copy failed. Please copy manually.', 'red');
-    });
-  }
-
-  function openPromptInLLM() {
-    const prompt = document.getElementById('pbOutput').value.trim();
-    const provider = document.getElementById('pbProvider').value;
-
-    if (!prompt) {
-      pbStatus('❌ Generate a prompt first.', 'red');
-      return;
-    }
-
-    const encoded = encodeURIComponent(prompt);
-    let url = "https://chatgpt.com/?q=" + encoded;
-    if (provider === 'gemini') url = "https://gemini.google.com/app?prompt=" + encoded;
-    if (provider === 'claude') url = "https://claude.ai/new";
-
-    const w = window.open(url, '_blank');
-    if (!w) {
-      pbStatus('❌ Popup blocked. Allow popups and try again.', 'red');
-      return;
-    }
-
-    navigator.clipboard.writeText(prompt).then(() => {
-      pbStatus('✅ Opened new tab. Prompt copied to clipboard.', '#15803d');
-    }).catch(() => {
-      pbStatus('✅ Opened new tab. Paste prompt manually if needed.', '#15803d');
-    });
-  }
-
-  function clearPromptBuilder() {
-    document.getElementById('pbInput').value = '';
-    document.getElementById('pbFocus').value = '';
-    document.getElementById('pbOutput').value = '';
-    document.getElementById('pbExampleCount').value = '10';
-    pbStatus('');
-  }
-
-  window.addEventListener('load', () => {
-    initTabs();
-    loadFromZip();
-
-    // Wire the Add Quotation + Type button
-    const btn = document.getElementById('pbAddQuoteTypeBtn');
-    if (btn) btn.addEventListener('click', addQuoteTypeFromFilteredRows);
-  });
-</script>
-
-<!-- Excel Multi-Cell Copy Feature -->
-<script>
-(() => {
-  if (window.__EXCEL_COPY_INIT__) return;
-  window.__EXCEL_COPY_INIT__ = true;
-
-  const css = `.db-table td.excel-selected { background: #dbeafe !important; } .db-table td.excel-anchor { outline: 2px solid #2563eb; outline-offset: -2px; } body.excel-dragging { user-select: none; -webkit-user-select: none; }`;
-  const style = document.createElement("style");
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  const state = { dragging: false, table: null, tbody: null, startRow: -1, startCol: -1, endRow: -1, endCol: -1 };
-
-  const CLEAN = (v) => String(v ?? "").replace(/\r?\n+/g, " ").replace(/\t/g, " ").trim();
-  const isEditableEl = (el) => !!el?.closest?.('input, textarea, select, [contenteditable="true"]');
-
-  function getDataCells(tr) {
-    return Array.from(tr.cells).filter(td => !td.querySelector(".row-actions"));
-  }
-
-  function clearSelections() {
-    document.querySelectorAll(".excel-selected, .excel-anchor").forEach(td => {
-      td.classList.remove("excel-selected", "excel-anchor");
-    });
-    state.dragging = false;
-    document.body.classList.remove("excel-dragging");
-  }
-
-  document.addEventListener("mousedown", (e) => {
-    if (e.button !== 0 || isEditableEl(e.target)) return;
-    const td = e.target.closest("table#dataTable tbody td");
-    if (!td) {
-      if (!e.target.closest("table#dataTable")) clearSelections();
-      return;
-    }
-    if (td.querySelector(".row-actions")) return;
-
-    clearSelections();
-    state.dragging = true;
-    state.table = td.closest('table');
-    state.tbody = td.closest('tbody');
-    const tr = td.closest('tr');
-    state.startRow = state.endRow = Array.prototype.indexOf.call(state.tbody.rows, tr);
-    state.startCol = state.endCol = getDataCells(tr).indexOf(td);
-
-    document.body.classList.add("excel-dragging");
-    td.classList.add("excel-selected", "excel-anchor");
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    if (!state.dragging) return;
-    const td = e.target.closest("table#dataTable tbody td");
-    if (!td || td.querySelector(".row-actions") || td.closest('table') !== state.table) return;
-
-    const tr = td.closest('tr');
-    state.endRow = Array.prototype.indexOf.call(state.tbody.rows, tr);
-    state.endCol = getDataCells(tr).indexOf(td);
-
-    // Clear previous selection
-    state.table.querySelectorAll(".excel-selected").forEach(c => c.classList.remove("excel-selected"));
-
-    const r1 = Math.min(state.startRow, state.endRow);
-    const r2 = Math.max(state.startRow, state.endRow);
-    const c1 = Math.min(state.startCol, state.endCol);
-    const c2 = Math.max(state.startCol, state.endCol);
-
-    for (let r = r1; r <= r2; r++) {
-      const cells = getDataCells(state.tbody.rows[r]);
-      for (let c = c1; c <= c2; c++) {
-        if (cells[c]) cells[c].classList.add("excel-selected");
-      }
-    }
-  });
-
-  document.addEventListener("mouseup", () => {
-    state.dragging = false;
-    document.body.classList.remove("excel-dragging");
-  });
-
-  // Copy handler (Ctrl+C or Cmd+C)
-  document.addEventListener("copy", (e) => {
-    if (isEditableEl(document.activeElement) || !state.table) return;
-
-    const r1 = Math.min(state.startRow, state.endRow);
-    const r2 = Math.max(state.startRow, state.endRow);
-    const c1 = Math.min(state.startCol, state.endCol);
-    const c2 = Math.max(state.startCol, state.endCol);
-
-    const lines = [];
-    for (let r = r1; r <= r2; r++) {
-      const cells = getDataCells(state.tbody.rows[r]);
-      const rowOut = [];
-      for (let c = c1; c <= c2; c++) {
-        rowOut.push(CLEAN(cells[c]?.innerText || ''));
-      }
-      lines.push(rowOut.join("\t"));
-    }
-
-    if (lines.length) {
-      e.preventDefault();
-      e.clipboardData.setData("text/plain", lines.join("\n"));
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") clearSelections();
-  });
-})();
-</script>
+  </script>
+</body>
+</html>
