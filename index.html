@@ -101,6 +101,7 @@
     .tab-btn.supp-tab.active {
       background: #0284c7;
       border-color: #0284c7;
+      color: white;
     }
 
     .controls {
@@ -274,7 +275,7 @@
     <main id="main-content" style="display:none;">
       <div class="controls">
         <div class="search-group">
-          <input type="text" id="globalSearch" placeholder="Global regex/substring text search string..." onkeyup="handleSearchInput(event)"/>
+          <input type="text" id="globalSearch" placeholder="Global text search string..." onkeyup="handleSearchInput(event)"/>
           <button class="btn" onclick="applyCurrentFilters()">Search 🔍</button>
         </div>
         <div>
@@ -308,20 +309,20 @@
   </div>
 
   <script>
-    // Unified Asset Routing Maps (Assuming standard GZIP deployment configurations)
+    // Unified Asset Routing Maps (Core = GZ archives, Supplement = Raw CSVs)
     const DATASET_FILE_ROUTING = {
-      // Core Matrix Files
+      // Core Matrix Files (Compressed)
       master: 'CPB(Lexicon)__Master.csv.gz',
       key: 'CPB(Lexicon)__Key to Values.csv.gz',
       lemmas: 'CPB(Lexicon)__Lemmas and POS.csv.gz',
       bigrams: 'CPB(Bigrams)__Bigrams.csv.gz',
       'pos-bigrams': 'CPB(Bigrams)__POS Bigrams.csv.gz',
       
-      // Supplementary Data-in-Brief Files
-      'supp-core': 'lexicon_frequencies.csv.gz',
-      'supp-all': 'freq_all.csv.gz',
-      'supp-narrative': 'freq_narrative.csv.gz',
-      'supp-informational': 'freq_information.csv.gz'
+      // Supplementary Data-in-Brief Files (Raw, uncompressed .csv filenames)
+      'supp-core': 'lexicon_frequencies.csv',
+      'supp-all': 'freq_all.csv',
+      'supp-narrative': 'freq_narrative.csv',
+      'supp-informational': 'freq_information.csv'
     };
 
     let datasetRegistry = {}; 
@@ -341,40 +342,45 @@
         await bootstrapDatabaseLoad();
       } catch (err) {
         document.getElementById('loading-overlay').innerHTML = 
-          `<span style="color:#ef4444;">Decompression Pipeline Interrupted: ${err.message}. Ensure relative archive path alignment.</span>`;
+          `<span style="color:#ef4444;">Pipeline Setup Failed: ${err.message}.</span>`;
         console.error(err);
       }
     });
 
-    // Native Browser Decompression Engine
-    async function fetchAndUnpackGzipCSV(url) {
+    // Flexible Data Loading Stream Engine
+    async function loadDatasetStream(url) {
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP network error reading asset: ${url}`);
+      if (!response.ok) throw new Error(`Could not find dataset file: ${url}`);
       
-      const decompressionStream = new DecompressionStream('gzip');
-      const textDecoderStream = new TextDecoderStream();
-      
-      const readableStream = response.body
-        .pipeThrough(decompressionStream)
-        .pipeThrough(textDecoderStream);
-        
-      let accumulatedOutput = '';
-      const reader = readableStream.getReader();
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        accumulatedOutput += value;
+      // Auto-detect compression type via extension
+      if (url.endsWith('.gz')) {
+        const decompressionStream = new DecompressionStream('gzip');
+        const textDecoderStream = new TextDecoderStream();
+        const readableStream = response.body
+          .pipeThrough(decompressionStream)
+          .pipeThrough(textDecoderStream);
+          
+        let text = '';
+        const reader = readableStream.getReader();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          text += value;
+        }
+        return text;
+      } else {
+        // Fallback for standard uncompressed raw supplementary .csv files
+        return await response.text();
       }
-      return accumulatedOutput;
     }
 
     async function bootstrapDatabaseLoad() {
       for (const [key, relativePath] of Object.entries(DATASET_FILE_ROUTING)) {
-        document.getElementById('loading-overlay').innerText = `Unpacking archive matrix stream [${key}]...`;
+        document.getElementById('loading-overlay').innerText = `Loading workspace matrix: [${key}]...`;
         try {
-          const rawCsvString = await fetchAndUnpackGzipCSV(relativePath);
+          const rawCsvString = await loadDatasetStream(relativePath);
           
-          // Parse using array matrices (header: false) to prevent duplicate header key collisions
+          // Parse using index arrays to stay collision-free from duplicate header names
           const parsed = Papa.parse(rawCsvString.trim(), {
             header: false,
             skipEmptyLines: true,
@@ -382,14 +388,14 @@
           });
           
           if (parsed.data && parsed.data.length > 0) {
-            datasetHeaders[key] = parsed.data[0]; // Capture display array strings directly
-            datasetRegistry[key] = parsed.data.slice(1); // Content arrays payload
+            datasetHeaders[key] = parsed.data[0]; 
+            datasetRegistry[key] = parsed.data.slice(1); 
           } else {
             datasetHeaders[key] = [];
             datasetRegistry[key] = [];
           }
         } catch(e) {
-          console.warn(`Asset deployment bypassed or missing for key [${key}]: ${e.message}`);
+          console.warn(`Optional matrix omitted or not found [${key}]: ${e.message}`);
           datasetHeaders[key] = [];
           datasetRegistry[key] = [];
         }
@@ -412,14 +418,12 @@
       applyDataTransformationFilters();
     }
 
-    // Identifies data profiles via index-mapped vectors
     function analyzeColumnMetadata() {
       const headers = datasetHeaders[activeTab] || [];
       const dataPool = datasetRegistry[activeTab] || [];
       
       headers.forEach((h, colIndex) => {
         let isNumeric = false;
-        // Test type characteristics over a lookahead sampling window of the first 15 records
         for (let i = 0; i < Math.min(dataPool.length, 15); i++) {
           const val = dataPool[i][colIndex];
           if (val !== null && val !== undefined && typeof val === 'number') {
@@ -438,11 +442,10 @@
       
       const headers = datasetHeaders[activeTab] || [];
       if (!headers.length) {
-        headEl.innerHTML = '<tr><th>Zero columns parsed inside active frame. Check archive source files.</th></tr>';
+        headEl.innerHTML = '<tr><th>This file could not be read. Please make sure the CSV file is in the same folder as this HTML file.</th></tr>';
         return;
       }
 
-      // Headers Sorting Action Layer
       const sortRow = document.createElement('tr');
       headers.forEach((headerName, index) => {
         const th = document.createElement('th');
@@ -452,7 +455,6 @@
       });
       headEl.appendChild(sortRow);
 
-      // Context-Aware High-Frequencies Parameter Filter Bar
       const filterRow = document.createElement('tr');
       filterRow.className = 'filter-row';
       
@@ -509,7 +511,6 @@
       const globalSearchVal = document.getElementById('globalSearch').value.trim().toLowerCase();
 
       runtimeFilteredData = baselineDataset.filter(row => {
-        // Evaluate dynamic column vector array maps
         for (let i = 0; i < row.length; i++) {
           const type = columnDataTypes[i];
           const val = row[i];
@@ -533,7 +534,6 @@
           }
         }
 
-        // Evaluate Global string pattern match expressions
         if (globalSearchVal) {
           const matchedAnywhere = row.some(val => 
             String(val ?? '').toLowerCase().includes(globalSearchVal)
@@ -544,7 +544,6 @@
         return true;
       });
 
-      // Preserve systematic alphanumeric column array sorting transformations
       if (systematicSortState.index !== null) {
         const idx = systematicSortState.index;
         const ascModifier = systematicSortState.ascending ? 1 : -1;
@@ -578,7 +577,7 @@
       document.getElementById('total-pages-num').innerText = totalPages;
 
       if (elementsSlice.length === 0) {
-        bodyEl.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:40px; color:#64748b; font-weight:500;">Zero records matched your parameter configurations.</td></tr>';
+        bodyEl.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:40px; color:#64748b; font-weight:500;">No records found. Please check that your CSV files match the exact filenames and are placed in the same folder as this file.</td></tr>';
         return;
       }
 
@@ -587,7 +586,7 @@
         row.forEach(val => {
           const td = document.createElement('td');
           if (typeof val === 'number' && !Number.isInteger(val)) {
-            td.innerText = val.toFixed(4); // Keep float UI clean and stable
+            td.innerText = val.toFixed(4);
           } else {
             td.innerText = val ?? '';
           }
@@ -641,7 +640,6 @@
       activeTab = tabKey;
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       
-      // Select exact DOM button objects via dynamic indexing configurations
       const indexMap = { 
         'master': 0, 'lemmas': 1, 'bigrams': 2, 'pos-bigrams': 3, 'key': 4,
         'supp-core': 5, 'supp-all': 6, 'supp-narrative': 7, 'supp-informational': 8
@@ -653,10 +651,9 @@
 
     function exportFilteredDataset() {
       if (!runtimeFilteredData.length) {
-        alert("Action canceled: Filtered workspace contains no structural text payloads.");
+        alert("Action canceled: Empty table data cannot be formatted.");
         return;
       }
-      // Re-stitch dynamic custom data header arrays onto CSV compilation rows
       const combinedOutputMatrix = [datasetHeaders[activeTab], ...runtimeFilteredData];
       const csvContent = Papa.unparse(combinedOutputMatrix);
       const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
