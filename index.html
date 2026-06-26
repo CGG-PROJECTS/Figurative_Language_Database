@@ -258,6 +258,7 @@
         <button class="tab-btn" onclick="switchTab('lemmas')">Lemmas & POS</button>
         <button class="tab-btn" onclick="switchTab('bigrams')">Bigrams Lexicon</button>
         <button class="tab-btn" onclick="switchTab('pos-bigrams')">POS Bigrams</button>
+        <button class="tab-btn" onclick="switchTab('matrix')">Document Matrix</button>
         <button class="tab-btn" onclick="switchTab('key')">Codebook (Key to Values)</button>
       </div>
 
@@ -309,16 +310,17 @@
   </div>
 
   <script>
-    // Unified Asset Routing Maps (Core = GZ archives, Supplement = Raw CSVs)
+    // Exact file routing maps corresponding directly to your repository's contents
     const DATASET_FILE_ROUTING = {
-      // Core Matrix Files (Compressed)
+      // Core Matrix Files (GZ compressed formats)
       master: 'CPB(Lexicon)__Master.csv.gz',
       key: 'CPB(Lexicon)__Key to Values.csv.gz',
       lemmas: 'CPB(Lexicon)__Lemmas and POS.csv.gz',
       bigrams: 'CPB(Bigrams)__Bigrams.csv.gz',
       'pos-bigrams': 'CPB(Bigrams)__POS Bigrams.csv.gz',
+      matrix: 'CPB (Document Matrix).csv.gz',
       
-      // Supplementary Data-in-Brief Files (Raw, uncompressed .csv filenames)
+      // Supplementary Data-in-Brief Files (Raw CSV formats)
       'supp-core': 'lexicon_frequencies.csv',
       'supp-all': 'freq_all.csv',
       'supp-narrative': 'freq_narrative.csv',
@@ -347,12 +349,11 @@
       }
     });
 
-    // Flexible Data Loading Stream Engine
+    // Flexible Data Loading Stream Engine (Auto-detects compression strings vs raw text)
     async function loadDatasetStream(url) {
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`Could not find dataset file: ${url}`);
+      if (!response.ok) throw new Error(`Could not find file asset: ${url}`);
       
-      // Auto-detect compression type via extension
       if (url.endsWith('.gz')) {
         const decompressionStream = new DecompressionStream('gzip');
         const textDecoderStream = new TextDecoderStream();
@@ -369,18 +370,17 @@
         }
         return text;
       } else {
-        // Fallback for standard uncompressed raw supplementary .csv files
         return await response.text();
       }
     }
 
     async function bootstrapDatabaseLoad() {
       for (const [key, relativePath] of Object.entries(DATASET_FILE_ROUTING)) {
-        document.getElementById('loading-overlay').innerText = `Loading workspace matrix: [${key}]...`;
+        document.getElementById('loading-overlay').innerText = `Loading repository asset: [${relativePath}]...`;
         try {
           const rawCsvString = await loadDatasetStream(relativePath);
           
-          // Parse using index arrays to stay collision-free from duplicate header names
+          // Index-based matrix routing handles duplicate header configurations across columns seamlessly
           const parsed = Papa.parse(rawCsvString.trim(), {
             header: false,
             skipEmptyLines: true,
@@ -395,7 +395,7 @@
             datasetRegistry[key] = [];
           }
         } catch(e) {
-          console.warn(`Optional matrix omitted or not found [${key}]: ${e.message}`);
+          console.warn(`Optional file omitted or not found [${key}]: ${e.message}`);
           datasetHeaders[key] = [];
           datasetRegistry[key] = [];
         }
@@ -442,7 +442,7 @@
       
       const headers = datasetHeaders[activeTab] || [];
       if (!headers.length) {
-        headEl.innerHTML = '<tr><th>This file could not be read. Please make sure the CSV file is in the same folder as this HTML file.</th></tr>';
+        headEl.innerHTML = '<tr><th>This file could not be rendered. Verify that the asset exists in your repository root folder.</th></tr>';
         return;
       }
 
@@ -577,7 +577,7 @@
       document.getElementById('total-pages-num').innerText = totalPages;
 
       if (elementsSlice.length === 0) {
-        bodyEl.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:40px; color:#64748b; font-weight:500;">No records found. Please check that your CSV files match the exact filenames and are placed in the same folder as this file.</td></tr>';
+        bodyEl.innerHTML = '<tr><td colspan="100" style="text-align:center; padding:40px; color:#64748b; font-weight:500;">No data rows matched the target parameters. Ensure your files are accurately named and placed.</td></tr>';
         return;
       }
 
@@ -641,8 +641,8 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       
       const indexMap = { 
-        'master': 0, 'lemmas': 1, 'bigrams': 2, 'pos-bigrams': 3, 'key': 4,
-        'supp-core': 5, 'supp-all': 6, 'supp-narrative': 7, 'supp-informational': 8
+        'master': 0, 'lemmas': 1, 'bigrams': 2, 'pos-bigrams': 3, 'matrix': 4, 'key': 5,
+        'supp-core': 6, 'supp-all': 7, 'supp-narrative': 8, 'supp-informational': 9
       };
       document.querySelectorAll('.tab-btn')[indexMap[tabKey]].classList.add('active');
       
@@ -651,7 +651,7 @@
 
     function exportFilteredDataset() {
       if (!runtimeFilteredData.length) {
-        alert("Action canceled: Empty table data cannot be formatted.");
+        alert("Action canceled: Workspace contains no valid structures.");
         return;
       }
       const combinedOutputMatrix = [datasetHeaders[activeTab], ...runtimeFilteredData];
